@@ -5,12 +5,10 @@
     border-radius: 5px;
     cursor: pointer;
     color: white;
-  }
-  
-  .active {
     background-color: blue;
   }
   
-  .inactive {
-    background-color: grey;
+  .disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
