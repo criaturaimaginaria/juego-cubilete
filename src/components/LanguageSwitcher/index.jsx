@@ -1,7 +1,9 @@
+'use client';
 import { useContext } from 'react';
-import { LanguageContext } from '../contexts/LanguageContext';
+// import { LanguageContext } from '../contexts/LenguageContext';
+import { LanguageContext } from '../../contexts/LenguageContext';
 
-const LanguageSwitcher = () => {
+export const LanguageSwitcher = () => {
   const { language, switchLanguage } = useContext(LanguageContext);
 
   const handleChange = (e) => {
