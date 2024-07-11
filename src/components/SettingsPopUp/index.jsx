@@ -1,6 +1,5 @@
 'use client';
 import { useContext } from 'react';
-import LanguageSwitcher from './LanguageSwitcher';
 import { LanguageContext } from '../contexts/LanguageContext';
 
 export const Header = () => {
