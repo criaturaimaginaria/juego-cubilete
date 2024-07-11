@@ -12,7 +12,6 @@ export default function GameplayPage() {
   return (
     <main>
       <h2>Gameplay for Game Code: {gameCode}</h2>
-      {/* Aquí iría el resto de la lógica de tu página de juego */}
       here we have things
       <Link href="/">
         Back to Main Page
