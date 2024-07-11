@@ -1,9 +1,11 @@
 'use client';
 import { useContext } from 'react';
-import { LanguageContext } from '../contexts/LanguageContext';
+// import { LanguageContext } from '../../contexts/LenguageContext';
+// import { LanguageContext } from '../contexts/LanguageContext';
+import { LanguageContext } from '../../contexts/LenguageContext';
 
-export const Header = () => {
-  const { language } = useContext(LanguageContext);
+export const SettingsPopUp = () => {
+  const { language } = useContext(LanguageContext );
 
   const translations = {
     es: {
@@ -21,11 +23,11 @@ export const Header = () => {
 
   return (
     <div >
-      <p>text 1 {translations[language].Content}</p>
-      <p>text 2 {translations[language].about}</p>
-      <p>text 3 {translations[language].Portfolio}</p>
+      <p>text 1 {translations[language].text1}</p>
+      <p>text 2 {translations[language].text2}</p>
+      <p>text 3 {translations[language].text2}</p>
     </div>
   );
 };
 
-export default Header;
+export default SettingsPopUp;
