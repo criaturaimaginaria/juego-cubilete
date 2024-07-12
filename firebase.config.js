@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, onValue } from 'firebase/database';
+import { getDatabase } from 'firebase/database';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
 // const firebaseConfig = {
 //   apiKey: "YOUR_API_KEY",
@@ -12,15 +13,23 @@ import { getDatabase, ref, set, onValue } from 'firebase/database';
 // };
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBdlTxlns8nZFskTbucHaI72CAO1HZa-z0",
-  authDomain: "cubilete-6182f.firebaseapp.com",
-  databaseURL: "https://cubilete-6182f-default-rtdb.firebaseio.com",
-  projectId: "cubilete-6182f",
-  storageBucket: "cubilete-6182f.appspot.com",
-  messagingSenderId: "903682159191",
-  appId: "1:903682159191:web:063d2b14880fd958a72912",
-  measurementId: "G-NGY8GTZBV3"
+  apiKey: process.env.NEXT_PUBLIC_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_APP_ID
 };
+
+
 
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
+export const auth = getAuth(app);
+
+
+// Sign in the user anonymously
+signInAnonymously(auth).catch((error) => {
+  console.error("Error during anonymous sign-in:", error);
+});
