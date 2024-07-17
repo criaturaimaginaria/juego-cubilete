@@ -3,6 +3,7 @@ import { useContext } from 'react';
 // import { LanguageContext } from '../../contexts/LenguageContext';
 // import { LanguageContext } from '../contexts/LanguageContext';
 import { LanguageContext } from '../../contexts/LenguageContext';
+import styles from './settings.module.css';
 
 export const SettingsPopUp = () => {
   const { language } = useContext(LanguageContext );

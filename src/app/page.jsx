@@ -45,7 +45,7 @@ export default function HomePage() {
 
       {/* <GameCodeInput /> */}
       <br></br>
-      {/* <SettingsPopUp /> */}
+      <SettingsPopUp />
       <br></br>
       {/* <LanguageSwitcher /> */}
       <br></br>
