@@ -25,10 +25,20 @@ export default function HomePage() {
 
   return (
     <main className={styles.main}>
-      <h2>Home page</h2>
+      <div className={styles.background}></div>
 
+        <div className={styles.mainBox1}>
 
-       <MainCup />
+        </div>
+        <div className={styles.mainBox2}>
+          <div className={styles.MainCupContainer}>
+              <MainCup />    
+          </div>
+
+          <div className={styles.table}></div>
+        </div>
+
+       
 
 
 
@@ -44,11 +54,11 @@ export default function HomePage() {
 
 
       {/* <GameCodeInput /> */}
-      <br></br>
-      <SettingsPopUp />
-      <br></br>
+
+      {/* <SettingsPopUp /> */}
+
       {/* <LanguageSwitcher /> */}
-      <br></br>
+
       {/* <FireTest /> */}
 
     </main>

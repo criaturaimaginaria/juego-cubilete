@@ -8,9 +8,9 @@
     position: relative;
     overflow: hidden;
     margin-top: 5%;
-    background-color: rgba(0, 255, 255, 0.105);
-    width: 11em;
-    height: 17em;
+    /* background-color: rgba(0, 255, 255, 0.105); */
+    width: 13em;
+    height: 20em;
 }
 
 .cupTop{
@@ -41,12 +41,13 @@
 }
 
 .cupBottom{
+    position: relative;
     margin-top: -10%;
     margin-left: auto;
     margin-right: auto;
-    width: 70%;
+    width: 72%;
     height: 15%;
-
+    z-index: 2;
     background-color: rgb(28, 28, 28);
     border-radius: 0% 0% 50% 50%;
 }
