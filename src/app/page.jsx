@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image'
 import styles from './page.module.css'
-import { GameCodeInput, LanguageSwitcher, SettingsPopUp, FireTest } from '../components';
+import { GameCodeInput, LanguageSwitcher, SettingsPopUp, FireTest, MainCup } from '../components';
 
 export default function HomePage() {
   const [gameCode, setGameCode] = useState('');
@@ -24,17 +24,32 @@ export default function HomePage() {
 
 
   return (
-    <main>
+    <main className={styles.main}>
       <h2>Home page</h2>
 
-      <GameCodeInput />
 
+       <MainCup />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      {/* <GameCodeInput /> */}
       <br></br>
-      <SettingsPopUp />
+      {/* <SettingsPopUp /> */}
       <br></br>
-      <LanguageSwitcher />
+      {/* <LanguageSwitcher /> */}
       <br></br>
-      <FireTest />
+      {/* <FireTest /> */}
 
     </main>
   );

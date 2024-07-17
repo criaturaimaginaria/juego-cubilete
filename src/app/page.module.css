@@ -1,5 +1,14 @@
 .main {
   align-items: center;
   height: 100vh;
-  background-color: aqua;
+  background-color: black;
+
+  background-image: url('./../../public/images/mainBackground.jpg'); 
+  background-size: cover; 
+  background-position: center;
+  background-repeat: no-repeat; 
+  background-attachment: fixed;
+  transform: scale(1.1);
+  /* filter: blur(9px);  */
+  /* z-index: -1; */
 }
