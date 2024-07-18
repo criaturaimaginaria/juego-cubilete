@@ -37,30 +37,6 @@ export default function HomePage() {
 
           <div className={styles.table}></div>
         </div>
-
-       
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      {/* <GameCodeInput /> */}
-
-      {/* <SettingsPopUp /> */}
-
-      {/* <LanguageSwitcher /> */}
-
-      {/* <FireTest /> */}
-
     </main>
   );
 }
