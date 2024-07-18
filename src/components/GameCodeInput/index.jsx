@@ -3,10 +3,10 @@
 import { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-// import { useContext } from 'react';
+import { database } from '../../../firebase.config'; // Ajusta la ruta de importación según tu configuración
+import { ref, set } from 'firebase/database';
 import { LanguageContext } from '../../contexts/LenguageContext';
 import createGame from '../../utils/createGame';
-
 
 const generateRandomCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -14,10 +14,8 @@ const generateRandomCode = () => {
 
 export const GameCodeInput = () => {
   const [gameCode, setGameCode] = useState('');
-  const [playerNames, setPlayerNames] = useState(['Player1', 'Player2', 'Player3', 'Player4']);
   const router = useRouter();
-  const { language } = useContext(LanguageContext );
-
+  const { language } = useContext(LanguageContext);
 
   const handleInputChange = (e) => {
     setGameCode(e.target.value);
@@ -26,6 +24,12 @@ export const GameCodeInput = () => {
   const handleGenerateRandomCode = () => {
     const randomCode = generateRandomCode();
     setGameCode(randomCode);
+
+    // Create the game in the database with the generated code
+    const gameRef = ref(database, `games/${randomCode}`);
+    set(gameRef, {
+      players: {} // Inicialmente, no hay jugadores definidos
+    });
   };
 
   const handleSubmit = (e) => {
@@ -34,8 +38,6 @@ export const GameCodeInput = () => {
       router.push(`/${gameCode}`);
     }
   };
-
-
 
   const translations = {
     es: {
@@ -48,31 +50,25 @@ export const GameCodeInput = () => {
     },
   };
 
-
   return (
     <div>
       <form onSubmit={handleSubmit}>
         <button type="button" onClick={handleGenerateRandomCode}>
-            {translations[language].generate}
+          {translations[language].generate}
         </button>
 
-
-        <input 
-          type="text" 
+        <input
+          type="text"
           placeholder="code"
           value={gameCode}
           onChange={handleInputChange}
           readOnly
         />
 
-          <button type="submit">{translations[language].play}</button>
+        <button type="submit">{translations[language].play}</button>
       </form>
-      {/* <Link href="/">
-        Back to Main Page
-      </Link> */}
     </div>
   );
-}
-
+};
 
 export default GameCodeInput;
