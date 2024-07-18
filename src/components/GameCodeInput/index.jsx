@@ -3,14 +3,18 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useContext } from 'react';
+import { LanguageContext } from '../../contexts/LenguageContext';
 
 const generateRandomCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 
-export default function GameCodeInput() {
+export const GameCodeInput = () => {
   const [gameCode, setGameCode] = useState('');
   const router = useRouter();
+  const { language } = useContext(LanguageContext );
+
 
   const handleInputChange = (e) => {
     setGameCode(e.target.value);
@@ -28,19 +32,37 @@ export default function GameCodeInput() {
     }
   };
 
+
+
+  const translations = {
+    es: {
+      generate: 'crear código de sala',
+      play: 'Jugar',
+    },
+    en: {
+      generate: 'generate room code',
+      play: 'Play',
+    },
+  };
+
+
   return (
     <div>
       <form onSubmit={handleSubmit}>
+        <button type="button" onClick={handleGenerateRandomCode}>
+            {translations[language].generate}
+        </button>
+
+
         <input 
           type="text" 
-          placeholder="Enter game code or generate random"
+          placeholder="code"
           value={gameCode}
           onChange={handleInputChange}
+          readOnly
         />
-        <button type="button" onClick={handleGenerateRandomCode}>
-          Generate Random Code
-        </button>
-        <button type="submit">Go to Game</button>
+
+          <button type="submit">{translations[language].play}</button>
       </form>
       {/* <Link href="/">
         Back to Main Page
@@ -48,3 +70,6 @@ export default function GameCodeInput() {
     </div>
   );
 }
+
+
+export default GameCodeInput;

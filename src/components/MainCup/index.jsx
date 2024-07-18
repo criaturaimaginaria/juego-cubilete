@@ -4,15 +4,21 @@ import styles from './mainCup.module.css';
 // import SettingsPopUp from './SettingsPopUp';
 import { SettingsPopUp } from './../SettingsPopUp/index';
 import { LanguageSwitcher } from './../LanguageSwitcher/index';
+import { GameCodeInput } from './../GameCodeInput/index';
 
 import { useContext } from 'react';
 import { LanguageContext } from '../../contexts/LenguageContext';
 
 export const MainCup = () => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [isPlayVisible, setIsPlayVisible] = useState(false);
 
   const togglePopup = () => {
     setIsPopupVisible(!isPopupVisible);
+  };
+
+  const PlayTogglePopup = () => {
+    setIsPlayVisible(!isPlayVisible);
   };
 
 
@@ -37,7 +43,7 @@ export const MainCup = () => {
         <div className={styles.cupTop}></div>
         <div className={styles.cupMiddle}>
           <div className={styles.btnContainer}>
-            <button className={styles.btn}>{translations[language].play}</button>
+            <button className={styles.btn} onClick={PlayTogglePopup}>{translations[language].play}</button>
             <button className={styles.btn} onClick={togglePopup}>Settings</button>
           </div>
         </div>
@@ -55,6 +61,17 @@ export const MainCup = () => {
           </div>
         </div>
       )}
+
+      {isPlayVisible && (
+        <div className={styles.popup}>
+          <div className={styles.popupContent}>
+            <button className={styles.playCloseBtn} onClick={PlayTogglePopup}>{translations[language].close}</button>
+            <GameCodeInput />
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
