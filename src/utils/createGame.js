@@ -1,21 +1,12 @@
 import { database } from '../../firebase.config.js';
 import { ref, set } from 'firebase/database';
 
-const createGame = (gameCode, playerNames) => {
-  const players = playerNames.reduce((acc, name, index) => {
-    acc[`player${index + 1}`] = {
-      name,
-      dice: 5,
-      isCurrentTurn: index === 0,
-      hasQuintilla: false,
-    };
-    return acc;
-  }, {});
-
+const createGame = (gameCode, numPlayers, numDice) => {
   const gameData = {
-    players,
-    currentTurn: 'player1',
-    totalDice: playerNames.length * 5,
+    players: {},
+    currentTurn: null,
+    totalDice: numPlayers * numDice,
+    numPlayers,
     roundActive: true,
     turnDirection: 'right',
     lastBid: {
