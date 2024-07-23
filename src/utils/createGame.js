@@ -1,12 +1,13 @@
-import { database } from '../../firebase.config.js';
+import { db } from '../../firebase.config.js';
 import { ref, set } from 'firebase/database';
 
-const createGame = (gameCode, numPlayers, numDice) => {
+const createGame = (gameCode, maxPlayers, dicePerPlayer) => {
   const gameData = {
+    maxPlayers,
+    dicePerPlayer,
     players: {},
-    currentTurn: null,
-    totalDice: numPlayers * numDice,
-    numPlayers,
+    currentTurn: 'player1',
+    totalDice: maxPlayers * dicePerPlayer,
     roundActive: true,
     turnDirection: 'right',
     lastBid: {
@@ -20,7 +21,7 @@ const createGame = (gameCode, numPlayers, numDice) => {
     gameHistory: []
   };
 
-  const gameRef = ref(database, `games/${gameCode}`);
+  const gameRef = ref(db, `games/${gameCode}`);
   return set(gameRef, gameData);
 };
 
