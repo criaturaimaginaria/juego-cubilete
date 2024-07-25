@@ -5,6 +5,10 @@ import styles from './mainCup.module.css';
 import { SettingsPopUp } from './../SettingsPopUp/index';
 import { LanguageSwitcher } from './../LanguageSwitcher/index';
 import { GameCodeInput } from './../GameCodeInput/index';
+// import { SignOutButton } from './../SignOutButton/index';
+import SignOutButton from './../SignOutButton';
+// import UserProfile from './../UserProfile';
+import { UserProfile } from '../'; 
 
 import { useContext } from 'react';
 import { LanguageContext } from '../../contexts/LenguageContext';
@@ -55,9 +59,11 @@ export const MainCup = () => {
         <div className={styles.popup}>
           <div className={styles.popupContent}>
             <h2>{translations[language].settings}</h2>
+            <UserProfile />
             <LanguageSwitcher />
             <SettingsPopUp />
             <button onClick={togglePopup}>{translations[language].close}</button>
+            <SignOutButton />
           </div>
         </div>
       )}
@@ -71,7 +77,6 @@ export const MainCup = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

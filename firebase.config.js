@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
-import { getAuth, signInAnonymously, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 // const firebaseConfig = {
 //   apiKey: "YOUR_API_KEY",
@@ -32,7 +32,4 @@ export { database };
 
 export const googleProvider = new GoogleAuthProvider();
 
-// Sign in the user anonymously
-signInAnonymously(auth).catch((error) => {
-  console.error("Error during anonymous sign-in:", error);
-});
+export default app;
