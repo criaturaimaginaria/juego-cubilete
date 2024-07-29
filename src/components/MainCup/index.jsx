@@ -1,14 +1,12 @@
 'use client';
 import { useState } from 'react';
 import styles from './mainCup.module.css';
-// import SettingsPopUp from './SettingsPopUp';
 import { SettingsPopUp } from './../SettingsPopUp/index';
 import { LanguageSwitcher } from './../LanguageSwitcher/index';
-import { GameCodeInput } from './../GameCodeInput/index';
-// import { SignOutButton } from './../SignOutButton/index';
+import GameCodeInput from './../GameCodeInput/index';  // Asegúrate de que la ruta es correcta
 import SignOutButton from './../SignOutButton';
-// import UserProfile from './../UserProfile';
 import { UserProfile } from '../'; 
+import JoinGameInput from './../JoinGameInput/index';  // Asegúrate de que la ruta es correcta
 
 import { useContext } from 'react';
 import { LanguageContext } from '../../contexts/LenguageContext';
@@ -24,7 +22,6 @@ export const MainCup = () => {
   const PlayTogglePopup = () => {
     setIsPlayVisible(!isPlayVisible);
   };
-
 
   const { language } = useContext(LanguageContext );
 
@@ -73,7 +70,7 @@ export const MainCup = () => {
           <div className={styles.popupContent}>
             <button className={styles.playCloseBtn} onClick={PlayTogglePopup}>{translations[language].close}</button>
             <GameCodeInput />
-
+            <JoinGameInput />
           </div>
         </div>
       )}

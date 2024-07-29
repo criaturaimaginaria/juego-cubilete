@@ -3,10 +3,10 @@
 import { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../../../firebase.config';
-import { ref, set } from 'firebase/database';
+import { ref, set, update } from 'firebase/database';
 import { LanguageContext } from '../../contexts/LenguageContext';
+import { useAuth } from '../../contexts/AuthProvider';
 import createGame from '../../utils/createGame';
-import JoinGameInput from '../JoinGameInput/index.jsx'
 
 const generateRandomCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -19,6 +19,7 @@ export const GameCodeInput = () => {
   const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
   const { language } = useContext(LanguageContext);
+  const { user } = useAuth();
 
   const handleGenerateRandomCode = async () => {
     const randomCode = generateRandomCode();
@@ -28,13 +29,25 @@ export const GameCodeInput = () => {
 
     try {
       await createGame(randomCode, numPlayers, numDice);
+
+      const gameRef = ref(db, `games/${randomCode}`);
+      const playerData = {
+        name: user.displayName,
+        guess: null,
+        isCurrentTurn: true,
+      };
+      await update(gameRef, {
+        [`players/${user.uid}`]: playerData,
+      });
+
+      // Navigate to the game page after creating the game
+      router.push(`/${randomCode}`);
+
     } catch (error) {
       console.error('Error creating game:', error);
+    } finally {
       setIsCreating(false);
-      return;
     }
-
-    setIsCreating(false);
   };
 
   const handleSubmit = (e) => {
@@ -97,13 +110,12 @@ export const GameCodeInput = () => {
 
         <button type="submit" disabled={isCreating}>{translations[language].play}</button>
       </form>
-
-      <JoinGameInput />
     </div>
   );
 };
 
 export default GameCodeInput;
+
 
 
 
@@ -233,6 +245,7 @@ export default GameCodeInput;
 // import { ref, set } from 'firebase/database';
 // import { LanguageContext } from '../../contexts/LenguageContext';
 // import createGame from '../../utils/createGame';
+// import JoinGameInput from './../../../.next/server/app/page';
 
 // const generateRandomCode = () => {
 //   return Math.random().toString(36).substring(2, 8).toUpperCase();

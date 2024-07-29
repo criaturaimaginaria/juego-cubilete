@@ -4,25 +4,22 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../../../firebase.config';
 import { ref, get, update } from 'firebase/database';
+import { useAuth } from '../../contexts/AuthProvider';
 
 const JoinGameInput = () => {
   const [joinCode, setJoinCode] = useState('');
-  const [playerName, setPlayerName] = useState('');
   const [error, setError] = useState(null);
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleInputChange = (e) => {
     setJoinCode(e.target.value);
   };
 
-  const handlePlayerNameChange = (e) => {
-    setPlayerName(e.target.value);
-  };
-
   const handleJoinGame = async (e) => {
     e.preventDefault();
-    if (!joinCode || !playerName) {
-      setError('Game code and player name are required');
+    if (!joinCode) {
+      setError('Game code is required');
       return;
     }
 
@@ -43,13 +40,14 @@ const JoinGameInput = () => {
         return;
       }
 
-      const playerId = `player${playerCount + 1}`;
-      players[playerId] = {
-        name: playerName,
-        dice: gameData.dicePerPlayer,
+      const playerData = {
+        name: user.displayName,
+        guess: null,
+        isCurrentTurn: playerCount === 0, // First player to join gets the first turn
       };
-
-      await update(gameRef, { players });
+      await update(gameRef, {
+        [`players/${user.uid}`]: playerData,
+      });
 
       router.push(`/${joinCode}`);
     } catch (error) {
@@ -66,12 +64,6 @@ const JoinGameInput = () => {
           placeholder="Enter game code"
           value={joinCode}
           onChange={handleInputChange}
-        />
-        <input
-          type="text"
-          placeholder="Enter your name"
-          value={playerName}
-          onChange={handlePlayerNameChange}
         />
         <button type="submit">Join Game</button>
       </form>
