@@ -12,6 +12,10 @@ const generateRandomCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 
+const generateRandomNumber = () => {
+  return Math.floor(Math.random() * 100) + 1; // Número aleatorio entre 1 y 100
+};
+
 export const GameCodeInput = () => {
   const [gameCode, setGameCode] = useState('');
   const [numPlayers, setNumPlayers] = useState(4);
@@ -28,7 +32,8 @@ export const GameCodeInput = () => {
     setIsCreating(true);
 
     try {
-      await createGame(randomCode, numPlayers, numDice);
+      const randomNumber = generateRandomNumber();
+      await createGame(randomCode, numPlayers, numDice, randomNumber);
 
       const gameRef = ref(db, `games/${randomCode}`);
       const playerData = {
@@ -42,7 +47,6 @@ export const GameCodeInput = () => {
 
       // Navigate to the game page after creating the game
       router.push(`/${randomCode}`);
-
     } catch (error) {
       console.error('Error creating game:', error);
     } finally {
@@ -121,16 +125,14 @@ export default GameCodeInput;
 
 
 
-// -------------------------------------------------------------------------
-
-
 // 'use client';
 
 // import { useState, useContext } from 'react';
 // import { useRouter } from 'next/navigation';
-// import { database } from '../../../firebase.config';
-// import { ref, set } from 'firebase/database';
+// import { db } from '../../../firebase.config';
+// import { ref, set, update } from 'firebase/database';
 // import { LanguageContext } from '../../contexts/LenguageContext';
+// import { useAuth } from '../../contexts/AuthProvider';
 // import createGame from '../../utils/createGame';
 
 // const generateRandomCode = () => {
@@ -144,23 +146,35 @@ export default GameCodeInput;
 //   const [isCreating, setIsCreating] = useState(false);
 //   const router = useRouter();
 //   const { language } = useContext(LanguageContext);
+//   const { user } = useAuth();
 
 //   const handleGenerateRandomCode = async () => {
 //     const randomCode = generateRandomCode();
 //     setGameCode(randomCode);
 
-//     setIsCreating(true); // Indicamos que se está creando la partida
+//     setIsCreating(true);
 
 //     try {
-//       // Crear la partida en la base de datos
 //       await createGame(randomCode, numPlayers, numDice);
+
+//       const gameRef = ref(db, `games/${randomCode}`);
+//       const playerData = {
+//         name: user.displayName,
+//         guess: null,
+//         isCurrentTurn: true,
+//       };
+//       await update(gameRef, {
+//         [`players/${user.uid}`]: playerData,
+//       });
+
+//       // Navigate to the game page after creating the game
+//       router.push(`/${randomCode}`);
+
 //     } catch (error) {
 //       console.error('Error creating game:', error);
+//     } finally {
 //       setIsCreating(false);
-//       return;
 //     }
-
-//     setIsCreating(false);
 //   };
 
 //   const handleSubmit = (e) => {
@@ -231,83 +245,3 @@ export default GameCodeInput;
 
 
 
-
-// -------------------------------------------------------------------------
-
-
-
-// 'use client';
-
-// import { useState, useContext } from 'react';
-// import { useRouter } from 'next/navigation';
-// import Link from 'next/link';
-// import { database } from '../../../firebase.config';
-// import { ref, set } from 'firebase/database';
-// import { LanguageContext } from '../../contexts/LenguageContext';
-// import createGame from '../../utils/createGame';
-// import JoinGameInput from './../../../.next/server/app/page';
-
-// const generateRandomCode = () => {
-//   return Math.random().toString(36).substring(2, 8).toUpperCase();
-// };
-
-// export const GameCodeInput = () => {
-//   const [gameCode, setGameCode] = useState('');
-//   const router = useRouter();
-//   const { language } = useContext(LanguageContext);
-
-//   const handleInputChange = (e) => {
-//     setGameCode(e.target.value);
-//   };
-
-//   const handleGenerateRandomCode = () => {
-//     const randomCode = generateRandomCode();
-//     setGameCode(randomCode);
-
-
-//     const gameRef = ref(database, `games/${randomCode}`);
-//     set(gameRef, {
-//       players: {} 
-//     });
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     if (gameCode) {
-//       router.push(`/${gameCode}`);
-//     }
-//   };
-
-//   const translations = {
-//     es: {
-//       generate: 'crear código de sala',
-//       play: 'Jugar',
-//     },
-//     en: {
-//       generate: 'generate room code',
-//       play: 'Play',
-//     },
-//   };
-
-//   return (
-//     <div>
-//       <form onSubmit={handleSubmit}>
-//         <button type="button" onClick={handleGenerateRandomCode}>
-//           {translations[language].generate}
-//         </button>
-
-//         <input
-//           type="text"
-//           placeholder="code"
-//           value={gameCode}
-//           onChange={handleInputChange}
-//           readOnly
-//         />
-
-//         <button type="submit">{translations[language].play}</button>
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default GameCodeInput;

@@ -16,13 +16,13 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       setLoading(false);
 
       if (user) {
         const userRef = ref(database, `users/${user.uid}`);
-        set(userRef, {
+        await set(userRef, {
           displayName: user.displayName,
           email: user.email,
           photoURL: user.photoURL,
@@ -37,7 +37,18 @@ export const AuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userRef = ref(database, `users/${user.uid}`);
+      await set(userRef, {
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+      });
+
+      setUser(user);
+      router.push('/');
     } catch (error) {
       console.error('Error signing in with Google:', error);
     }
