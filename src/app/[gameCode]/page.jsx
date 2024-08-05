@@ -1,138 +1,442 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { ref, onValue, update } from 'firebase/database';
+import { useEffect, useState, useContext } from 'react';
+import { useRouter } from 'next/navigation';
 import { db } from '../../../firebase.config';
+import { ref, onValue, update } from 'firebase/database';
+import { LanguageContext } from '../../contexts/LenguageContext';
 import { useAuth } from '../../contexts/AuthProvider';
-import styles from './page.module.css';
 
-export default function GameplayPage() {
-  const { gameCode } = useParams();
+const GameplayPage = ({ params }) => {
+  const { gameCode } = params;
   const [gameData, setGameData] = useState(null);
-  const [guess, setGuess] = useState('');
+  const [playerGuess, setPlayerGuess] = useState('');
+  const [roundGuessTotal, setRoundGuessTotal] = useState(0);
+  const [actualTotalDice, setActualTotalDice] = useState(0);
+  const [roundInProgress, setRoundInProgress] = useState(true);
+  const [allPlayersRolled, setAllPlayersRolled] = useState(false);
+  const [playersChallenges, setPlayersChallenges] = useState({});
+  const { language } = useContext(LanguageContext);
   const { user } = useAuth();
 
   useEffect(() => {
-    if (gameCode) {
-      const gameRef = ref(db, `games/${gameCode}`);
-      onValue(gameRef, (snapshot) => {
-        setGameData(snapshot.val());
-      });
-    }
+    if (!gameCode) return;
+
+    const gameRef = ref(db, `games/${gameCode}`);
+
+    const unsubscribe = onValue(gameRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        console.log("Game data received:", data);
+        setGameData(data);
+        setRoundInProgress(data.roundInProgress);
+        setRoundGuessTotal(data.roundGuessTotal || 0);
+        setActualTotalDice(data.actualTotalDice);
+        setAllPlayersRolled(checkAllPlayersRolled(data.players));
+        setPlayersChallenges(data.playersChallenges || {});
+
+        // Si todos los jugadores han tirado los dados, iniciamos el turno del primer jugador.
+        if (checkAllPlayersRolled(data.players) && !data.currentTurn) {
+          startFirstTurn(data.players);
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, [gameCode]);
 
-  const handleGuessChange = (e) => {
-    setGuess(e.target.value);
+  const checkAllPlayersRolled = (players) => {
+    return Object.values(players).every(player => player.rollResult !== undefined);
   };
 
-  const handleSubmitGuess = async (e) => {
-    e.preventDefault();
-    if (!gameData || !user) return;
+  const startFirstTurn = (players) => {
+    const initialTurn = Object.keys(players)[0];
+    const updates = {
+      currentTurn: initialTurn,
+      roundInProgress: true,
+    };
 
-    const playerRef = ref(db, `games/${gameCode}/players/${user.uid}`);
-    const gameRef = ref(db, `games/${gameCode}`);
-
-    // Actualiza la adivinanza del jugador
-    await update(playerRef, {
-      guess: parseInt(guess, 10),
-    });
-
-    // Cambiar el turno al siguiente jugador
-    const currentTurnPlayer = Object.keys(gameData.players).find(
-      (key) => gameData.players[key].isCurrentTurn
-    );
-
-    const playerKeys = Object.keys(gameData.players);
-    const currentTurnIndex = playerKeys.indexOf(currentTurnPlayer);
-    const nextTurnIndex = (currentTurnIndex + 1) % playerKeys.length;
-    const nextTurnPlayer = playerKeys[nextTurnIndex];
-
-    await update(gameRef, {
-      [`players/${currentTurnPlayer}/isCurrentTurn`]: false,
-      [`players/${nextTurnPlayer}/isCurrentTurn`]: true,
-    });
-
-    setGuess('');
+    update(ref(db, `games/${gameCode}`), updates);
   };
 
-  const handleChallenge = async () => {
-    if (!gameData || !user) return;
+  const handleRollDice = () => {
+    if (gameData && gameData.players && gameData.players[user.uid]) {
+      const playerDiceCount = gameData.players[user.uid].dice;
+      const rollResult = Math.floor(Math.random() * 6) + 1;
+      update(ref(db, `games/${gameCode}/players/${user.uid}`), { rollResult })
+        .then(() => {
+          const updatedPlayers = { ...gameData.players, [user.uid]: { ...gameData.players[user.uid], rollResult } };
+          if (checkAllPlayersRolled(updatedPlayers)) {
+            const newTotalDice = calculateTotalDice(updatedPlayers);
+            update(ref(db, `games/${gameCode}`), { actualTotalDice: newTotalDice, roundInProgress: true });
+          }
+        });
+    }
+  };
 
-    const gameRef = ref(db, `games/${gameCode}`);
-    const totalDice = gameData.totalDice;
-    const playerGuesses = Object.values(gameData.players).map((player) => player.guess);
+  const handleGuessSubmit = () => {
+    if (playerGuess && !isNaN(playerGuess)) {
+      const newGuessTotal = roundGuessTotal + parseInt(playerGuess);
+      setRoundGuessTotal(newGuessTotal);
+      update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn() });
+      setPlayerGuess('');
+    }
+  };
 
-    const sumOfGuesses = playerGuesses.reduce((sum, guess) => sum + (guess || 0), 0);
-    const challengeSuccess = sumOfGuesses <= totalDice;
-
-    const updatedPlayers = { ...gameData.players };
-
-    if (challengeSuccess) {
-      Object.keys(updatedPlayers).forEach((playerId) => {
-        if (updatedPlayers[playerId].guess > totalDice) {
-          updatedPlayers[playerId].dice -= 1;
+  const handleChallenge = (believe) => {
+    const newChallenges = { ...playersChallenges, [user.uid]: believe };
+    setPlayersChallenges(newChallenges);
+    update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
+      .then(() => {
+        if (Object.keys(newChallenges).length === Object.keys(gameData.players).length) {
+          endRound(newChallenges);
         }
       });
-    } else {
-      updatedPlayers[user.uid].dice -= 1;
+  };
+
+  const endRound = (challenges) => {
+    const correctGuesses = Object.values(challenges).filter(believe => believe).length;
+    const incorrectGuesses = Object.values(challenges).length - correctGuesses;
+
+    const updates = {};
+
+    Object.entries(gameData.players).forEach(([uid, player]) => {
+      if (challenges[uid]) {
+        updates[`players/${uid}/dice`] = player.dice;
+      } else {
+        updates[`players/${uid}/dice`] = player.dice - 1;
+      }
+      updates[`players/${uid}/rollResult`] = null;
+    });
+
+    updates['roundInProgress'] = true;
+    updates['currentRound'] = gameData.currentRound + 1;
+    updates['roundGuessTotal'] = 0;
+    updates['playersChallenges'] = {};
+    updates['currentTurn'] = Object.keys(gameData.players)[0]; // Reset to the first player for the new round
+
+    update(ref(db, `games/${gameCode}`), updates);
+  };
+
+  const calculateTotalDice = (players) => {
+    return Object.values(players).reduce((total, player) => total + player.rollResult, 0);
+  };
+
+  const getNextTurn = () => {
+    const playerOrder = Object.keys(gameData.players);
+    const currentTurnIndex = playerOrder.indexOf(gameData.currentTurn);
+    return playerOrder[(currentTurnIndex + 1) % playerOrder.length];
+  };
+
+  const isPlayerTurn = () => {
+    if (gameData && gameData.currentTurn && user && user.uid) {
+      console.log(`Checking turn: currentTurn=${gameData.currentTurn}, user.uid=${user.uid}`);
+      return gameData.currentTurn === user.uid;
     }
-
-    await update(gameRef, {
-      players: updatedPlayers,
-      totalDice: null,
-    });
-
-    // Reinicia el juego
-    const newTotalDice = calculateTotalDice(Object.keys(gameData.players).length, gameData.numDice);
-    await update(gameRef, {
-      totalDice: newTotalDice,
-      currentTurn: null,
-    });
+    return false;
   };
 
-  const calculateTotalDice = (numPlayers, numDice) => {
-    return Array(numPlayers)
-      .fill(0)
-      .reduce((total) => total + Math.floor(Math.random() * numDice) + 1, 0);
+  const translations = {
+    es: {
+      guess: 'Adivinar',
+      roll: 'Tirar Dados',
+      believe: 'Creo',
+      disbelieve: 'No creo',
+      endRound: 'Frenar Ronda',
+    },
+    en: {
+      guess: 'Guess',
+      roll: 'Roll Dice',
+      believe: 'Believe',
+      disbelieve: 'Disbelieve',
+      endRound: 'End Round',
+    },
   };
 
-  if (!gameData) {
-    return <div>Loading...</div>;
+  if (!gameCode) {
+    return <div>Error: No game code provided</div>;
   }
 
   return (
-    <div className={styles.game}>
-      <h2>Gameplay for Game Code: {gameCode}</h2>
-      {gameData.winner ? (
+    <div>
+      <h1>Gameplay Page - {gameCode}</h1>
+      <p>Current Round: {gameData?.currentRound}</p>
+      <p>Actual Total Dice: {actualTotalDice}</p>
+      <p>Round Guess Total: {roundGuessTotal}</p>
+
+      {roundInProgress ? (
         <div>
-          <h3>{gameData.winner} has won the game!</h3>
+          {!allPlayersRolled ? (
+            <button onClick={handleRollDice}>{translations[language].roll}</button>
+          ) : (
+            <div>
+              {isPlayerTurn() ? (
+                <>
+                  <input
+                    type="text"
+                    placeholder={translations[language].guess}
+                    value={playerGuess}
+                    onChange={(e) => setPlayerGuess(e.target.value)}
+                  />
+                  <button onClick={handleGuessSubmit}>{translations[language].guess}</button>
+                </>
+              ) : (
+                <p>Waiting for your turn...</p>
+              )}
+              {Object.keys(playersChallenges).length !== Object.keys(gameData.players).length && !isPlayerTurn() ? (
+                <>
+                  <button onClick={() => handleChallenge(true)}>{translations[language].believe}</button>
+                  <button onClick={() => handleChallenge(false)}>{translations[language].disbelieve}</button>
+                </>
+              ) : null}
+            </div>
+          )}
         </div>
       ) : (
-        <>
-          <div>
-            <form onSubmit={handleSubmitGuess}>
-              <input
-                type="number"
-                placeholder="Enter your guess"
-                value={guess}
-                onChange={handleGuessChange}
-              />
-              <button type="submit">Submit Guess</button>
-            </form>
-            <button onClick={handleChallenge}>Challenge</button>
-          </div>
-          <div className={styles.players}>
-            {gameData.players &&
-              Object.keys(gameData.players).map((playerId) => (
-                <div key={playerId} className={styles.player}>
-                  {gameData.players[playerId].name}: {gameData.players[playerId].guess || 'No guess yet'} | Dice: {gameData.players[playerId].dice}
-                </div>
-              ))}
-          </div>
-        </>
+        <div>
+          <p>Waiting for all players to finish their challenges...</p>
+        </div>
       )}
     </div>
   );
-}
+};
+
+export default GameplayPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+
+// import { useEffect, useState, useContext } from 'react';
+// import { useRouter } from 'next/navigation';
+// import { db } from '../../../firebase.config';
+// import { ref, onValue, update } from 'firebase/database';
+// import { LanguageContext } from '../../contexts/LenguageContext';
+// import { useAuth } from '../../contexts/AuthProvider';
+
+// const GameplayPage = ({ params }) => {
+//   const { gameCode } = params;
+//   const [gameData, setGameData] = useState(null);
+//   const [playerGuess, setPlayerGuess] = useState('');
+//   const [roundGuessTotal, setRoundGuessTotal] = useState(0);
+//   const [actualTotalDice, setActualTotalDice] = useState(0);
+//   const [roundInProgress, setRoundInProgress] = useState(true);
+//   const [allPlayersRolled, setAllPlayersRolled] = useState(false);
+//   const [playersChallenges, setPlayersChallenges] = useState({});
+//   const { language } = useContext(LanguageContext);
+//   const { user } = useAuth();
+
+//   useEffect(() => {
+//     if (!gameCode) return;
+
+//     const gameRef = ref(db, `games/${gameCode}`);
+
+//     const unsubscribe = onValue(gameRef, (snapshot) => {
+//       const data = snapshot.val();
+//       if (data) {
+//         console.log("Game data received:", data);
+//         setGameData(data);
+//         setRoundInProgress(data.roundInProgress);
+//         setRoundGuessTotal(data.roundGuessTotal || 0);
+//         setActualTotalDice(data.actualTotalDice);
+//         setAllPlayersRolled(checkAllPlayersRolled(data.players));
+//         setPlayersChallenges(data.playersChallenges || {});
+//       }
+//     });
+
+//     return () => unsubscribe();
+//   }, [gameCode]);
+
+//   const checkAllPlayersRolled = (players) => {
+//     return Object.values(players).every(player => player.rollResult !== undefined);
+//   };
+
+//   const handleRollDice = () => {
+//     if (gameData && gameData.players && gameData.players[user.uid]) {
+//       const playerDiceCount = gameData.players[user.uid].dice;
+//       const rollResult = Math.floor(Math.random() * 6) + 1;
+//       update(ref(db, `games/${gameCode}/players/${user.uid}`), { rollResult })
+//         .then(() => {
+//           const updatedPlayers = { ...gameData.players, [user.uid]: { ...gameData.players[user.uid], rollResult } };
+//           if (checkAllPlayersRolled(updatedPlayers)) {
+//             const newTotalDice = calculateTotalDice(updatedPlayers);
+//             update(ref(db, `games/${gameCode}`), { actualTotalDice: newTotalDice, roundInProgress: true });
+//           }
+//         });
+//     }
+//   };
+
+//   const handleGuessSubmit = () => {
+//     if (playerGuess && !isNaN(playerGuess)) {
+//       const newGuessTotal = roundGuessTotal + parseInt(playerGuess);
+//       setRoundGuessTotal(newGuessTotal);
+//       update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn() });
+//       setPlayerGuess('');
+//     }
+//   };
+
+//   const handleChallenge = (believe) => {
+//     const newChallenges = { ...playersChallenges, [user.uid]: believe };
+//     setPlayersChallenges(newChallenges);
+//     update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
+//       .then(() => {
+//         if (Object.keys(newChallenges).length === Object.keys(gameData.players).length) {
+//           endRound(newChallenges);
+//         }
+//       });
+//   };
+
+//   const endRound = (challenges) => {
+//     const correctGuesses = Object.values(challenges).filter(believe => believe).length;
+//     const incorrectGuesses = Object.values(challenges).length - correctGuesses;
+
+//     const updates = {};
+
+//     Object.entries(gameData.players).forEach(([uid, player]) => {
+//       if (challenges[uid]) {
+//         updates[`players/${uid}/dice`] = player.dice;
+//       } else {
+//         updates[`players/${uid}/dice`] = player.dice - 1;
+//       }
+//       updates[`players/${uid}/rollResult`] = null;
+//     });
+
+//     updates['roundInProgress'] = true;
+//     updates['currentRound'] = gameData.currentRound + 1;
+//     updates['roundGuessTotal'] = 0;
+//     updates['playersChallenges'] = {};
+//     updates['currentTurn'] = Object.keys(gameData.players)[0]; // Reset to the first player for the new round
+
+//     update(ref(db, `games/${gameCode}`), updates);
+//   };
+
+//   const calculateTotalDice = (players) => {
+//     return Object.values(players).reduce((total, player) => total + player.rollResult, 0);
+//   };
+
+//   const getNextTurn = () => {
+//     const playerOrder = Object.keys(gameData.players);
+//     const currentTurnIndex = playerOrder.indexOf(gameData.currentTurn);
+//     return playerOrder[(currentTurnIndex + 1) % playerOrder.length];
+//   };
+
+//   const isPlayerTurn = () => {
+//     if (gameData && gameData.currentTurn && user && user.uid) {
+//       console.log(`Checking turn: currentTurn=${gameData.currentTurn}, user.uid=${user.uid}`);
+//       return gameData.currentTurn === user.uid;
+//       // return true
+//     }
+//     return false;
+//   };
+
+//   const translations = {
+//     es: {
+//       guess: 'Adivinar',
+//       roll: 'Tirar Dados',
+//       believe: 'Creo',
+//       disbelieve: 'No creo',
+//       endRound: 'Frenar Ronda',
+//     },
+//     en: {
+//       guess: 'Guess',
+//       roll: 'Roll Dice',
+//       believe: 'Believe',
+//       disbelieve: 'Disbelieve',
+//       endRound: 'End Round',
+//     },
+//   };
+
+//   if (!gameCode) {
+//     return <div>Error: No game code provided</div>;
+//   }
+
+//   return (
+//     <div>
+//       <h1>Gameplay Page - {gameCode}</h1>
+//       <p>Current Round: {gameData?.currentRound}</p>
+//       <p>Actual Total Dice: {actualTotalDice}</p>
+//       <p>Round Guess Total: {roundGuessTotal}</p>
+
+//       {roundInProgress ? (
+//         <div>
+//           {!allPlayersRolled ? (
+//             <button onClick={handleRollDice}>{translations[language].roll}</button>
+//           ) : (
+//             <div>
+//               {isPlayerTurn() ? (
+//                 <>
+//                   <input
+//                     type="text"
+//                     placeholder={translations[language].guess}
+//                     value={playerGuess}
+//                     onChange={(e) => setPlayerGuess(e.target.value)}
+//                   />
+//                   <button onClick={handleGuessSubmit}>{translations[language].guess}</button>
+//                 </>
+//               ) : (
+//                 <p>Waiting for your turn...</p>
+//               )}
+//               {Object.keys(playersChallenges).length !== Object.keys(gameData.players).length && !isPlayerTurn() ? (
+//                 <>
+//                   <button onClick={() => handleChallenge(true)}>{translations[language].believe}</button>
+//                   <button onClick={() => handleChallenge(false)}>{translations[language].disbelieve}</button>
+//                 </>
+//               ) : null}
+//             </div>
+//           )}
+//         </div>
+//       ) : (
+//         <div>
+//           <p>Waiting for all players to finish their challenges...</p>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default GameplayPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -12,11 +12,7 @@ const generateRandomCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 
-const generateRandomNumber = () => {
-  return Math.floor(Math.random() * 100) + 1; // Número aleatorio entre 1 y 100
-};
-
-export const GameCodeInput = () => {
+const GameCodeInput = () => {
   const [gameCode, setGameCode] = useState('');
   const [numPlayers, setNumPlayers] = useState(4);
   const [numDice, setNumDice] = useState(5);
@@ -43,9 +39,12 @@ export const GameCodeInput = () => {
       };
       await update(gameRef, {
         [`players/${user.uid}`]: playerData,
+        actualTotalDice: calculateTotalDice(numPlayers, numDice),
+        roundTotalDice: 0,
+        currentRound: 1,
+        roundInProgress: true,
       });
 
-      // Navigate to the game page after creating the game
       router.push(`/${randomCode}`);
     } catch (error) {
       console.error('Error creating game:', error);
@@ -61,18 +60,24 @@ export const GameCodeInput = () => {
     }
   };
 
+  const calculateTotalDice = (numPlayers, numDice) => {
+    return Array(numPlayers)
+      .fill(0)
+      .reduce((total) => total + Math.floor(Math.random() * numDice) + 1, 0);
+  };
+
   const translations = {
     es: {
       generate: 'crear código de sala',
       play: 'Jugar',
       numPlayers: 'Número de jugadores',
-      numDice: 'Número de dados'
+      numDice: 'Número de dados',
     },
     en: {
       generate: 'generate room code',
       play: 'Play',
       numPlayers: 'Number of players',
-      numDice: 'Number of dice'
+      numDice: 'Number of dice',
     },
   };
 
@@ -89,30 +94,21 @@ export const GameCodeInput = () => {
           value={gameCode}
           readOnly
         />
-
-        <div>
-          <label>{translations[language].numPlayers}</label>
-          <input
-            type="number"
-            value={numPlayers}
-            onChange={(e) => setNumPlayers(Number(e.target.value))}
-            min="2"
-            max="6"
-          />
-        </div>
-
-        <div>
-          <label>{translations[language].numDice}</label>
-          <input
-            type="number"
-            value={numDice}
-            onChange={(e) => setNumDice(Number(e.target.value))}
-            min="1"
-            max="10"
-          />
-        </div>
-
-        <button type="submit" disabled={isCreating}>{translations[language].play}</button>
+        <input
+          type="number"
+          placeholder={translations[language].numPlayers}
+          value={numPlayers}
+          onChange={(e) => setNumPlayers(e.target.value)}
+          disabled={isCreating}
+        />
+        <input
+          type="number"
+          placeholder={translations[language].numDice}
+          value={numDice}
+          onChange={(e) => setNumDice(e.target.value)}
+          disabled={isCreating}
+        />
+        <button type="submit">{translations[language].play}</button>
       </form>
     </div>
   );
