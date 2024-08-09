@@ -84,16 +84,7 @@ const GameCodeInput = () => {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <button type="button" onClick={handleGenerateRandomCode} disabled={isCreating}>
-          {translations[language].generate}
-        </button>
-
-        <input
-          type="text"
-          placeholder="code"
-          value={gameCode}
-          readOnly
-        />
+        <p>{translations[language].numPlayers}</p>
         <input
           type="number"
           placeholder={translations[language].numPlayers}
@@ -101,6 +92,7 @@ const GameCodeInput = () => {
           onChange={(e) => setNumPlayers(e.target.value)}
           disabled={isCreating}
         />
+          <p>{translations[language].numDice}</p>
         <input
           type="number"
           placeholder={translations[language].numDice}
@@ -108,7 +100,24 @@ const GameCodeInput = () => {
           onChange={(e) => setNumDice(e.target.value)}
           disabled={isCreating}
         />
-        <button type="submit">{translations[language].play}</button>
+        {/* <input
+          type="text"
+          placeholder="code"
+          value={gameCode}
+          readOnly
+        /> */}
+
+        <button type="button" onClick={handleGenerateRandomCode} disabled={isCreating}>
+          {translations[language].play}
+        </button>
+
+
+        {/* <button type="button" onClick={handleGenerateRandomCode} disabled={isCreating}>
+          {translations[language].generate}
+        </button>
+
+        <button type="submit">{translations[language].play}</button> */}
+
       </form>
     </div>
   );
