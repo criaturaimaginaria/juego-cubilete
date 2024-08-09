@@ -6,6 +6,7 @@ import { db } from '../../../firebase.config';
 import { ref, onValue, update } from 'firebase/database';
 import { LanguageContext } from '../../contexts/LenguageContext';
 import { useAuth } from '../../contexts/AuthProvider';
+import styles from './page.module.css'
 
 const SYMBOLS = ['9', '10', 'J', 'Q', 'K', 'A'];
 
@@ -42,6 +43,7 @@ const GameplayPage = ({ params }) => {
   
   const [previousPlayerGuess, setPreviousPlayerGuess] = useState(null);
   const [previousPlayerGuessQuantity, setPreviousPlayerGuessQuantity] = useState(0);
+  const [hasRolled, setHasRolled] = useState(false);
 
 
 
@@ -143,6 +145,14 @@ const GameplayPage = ({ params }) => {
         });
       }
     }
+
+    if (!hasRolled) {
+      setHasRolled(true);
+      const audio = new Audio('/images/dices_sound.mp3');
+      audio.play();
+
+    }
+
   };
 
 
@@ -343,11 +353,20 @@ const GameplayPage = ({ params }) => {
       {error && <p style={{ color: 'red' }}>{error}</p>} 
   
       {gameOver && winner ? (
-        <p>{winner} {translations[language].winMessage}</p>
+        <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
       ) : (
         <>
           {!roundInProgress || !allPlayersRolled ? (
-            <button onClick={handleRollDice}>{translations[language].roll}</button>
+            <div>
+              <button onClick={handleRollDice}>{translations[language].roll}</button>
+                {hasRolled && (
+                  <div className={styles.diceContainer}>
+                     <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
+                  </div>
+                 
+                )}
+            </div>
+
           ) : (
             isPlayerTurn() && !Object.keys(playersChallenges).length ? (
               <div>
