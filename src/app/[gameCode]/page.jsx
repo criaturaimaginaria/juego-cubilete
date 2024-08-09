@@ -443,8 +443,9 @@ const GameplayPage = ({ params }) => {
            <p>Last player move <b>{previousPlayerGuessQuantity} {previousPlayerGuess}</b></p>
          )}
   
-      {gameData?.players && Object.values(gameData.players).map(player => (
-        <div key={player.uid}>
+      {gameData?.players && Object.values(gameData.players).map((player, index )=> (
+        
+        <div key={index}>{console.log("player.uid HERE HERE", player.uid)}
           <p>{player.name}:  <b>{player.dice} dice</b> </p>
           {/* {  player.rollResults && (
             <p>Rolled: {player.rollResults.join(', ')}</p>
