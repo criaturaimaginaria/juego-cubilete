@@ -269,7 +269,7 @@ const GameplayPage = ({ params }) => {
   
     Object.values(players).forEach(player => {
       // Suma la cantidad de dados que tiene cada jugador
-      totalDice += player.dice; 
+      totalDice += Number(player.dice); 
     });
   
     return totalDice;
@@ -356,8 +356,8 @@ const GameplayPage = ({ params }) => {
     <div>
       <h1>Room code <b>{gameCode}</b> </h1>
       <p>Current Round: <b>{gameData?.currentRound}</b> </p>
-      {/* <p>Actual Total Dice: {actualTotalDice}</p> */}
-      {/* <p>Total Dice value of All Players: <b>{totalDiceSum}</b> </p> */}
+      {/* <p>Actual Total Dice: {actualTotalDice}</p>
+      <p>Total Dice value of All Players: <b>{totalDiceSum}</b> </p> */}
       <p>Total Dice of All Players  <b>{totalPlayerDice}</b> </p> 
       {/* <p>Round Guess Total: {roundGuessTotal}</p> */}
   
