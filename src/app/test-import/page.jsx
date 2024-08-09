@@ -1,6 +1,6 @@
 'use client';
 
-import { AuthProvider } from '../contexts/AuthProvider';
+// import { AuthProvider } from '../contexts/AuthProvider';
 
 export default function TestImport() {
   return (
