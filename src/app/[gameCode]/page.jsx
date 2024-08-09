@@ -44,6 +44,9 @@ const GameplayPage = ({ params }) => {
   const [previousPlayerGuess, setPreviousPlayerGuess] = useState(null);
   const [previousPlayerGuessQuantity, setPreviousPlayerGuessQuantity] = useState(0);
   const [hasRolled, setHasRolled] = useState(false);
+  const [playerCount, setPlayerCount] = useState(0);
+  const [showGif, setShowGif] = useState(false);
+
 
 
 
@@ -56,6 +59,7 @@ const GameplayPage = ({ params }) => {
       const data = snapshot.val();
       if (data) {
         setGameData(data);
+        setPlayerCount(Object.keys(data.players || {}).length);
         setRoundGuessTotal(data.roundGuessTotal || 0);
         setActualTotalDice(data.actualTotalDice);
         setTotalDiceSum(calculateTotalDice(data.players));
@@ -148,10 +152,16 @@ const GameplayPage = ({ params }) => {
 
     if (!hasRolled) {
       setHasRolled(true);
-      const audio = new Audio('/images/dices_sound.mp3');
-      audio.play();
+      // const audio = new Audio('/images/dices_sound.mp3');
+      // audio.play();
 
     }
+
+    const audio = new Audio('/images/dices_sound.mp3');
+    audio.play();
+
+    setShowGif(true); // Reset GIF visibility
+
 
   };
 
@@ -204,6 +214,7 @@ const GameplayPage = ({ params }) => {
           endRound(newChallenges); // Si todos eligieron  termina la ronda
         }
       });
+      setShowGif(false)
   };
   
 
@@ -307,7 +318,7 @@ const GameplayPage = ({ params }) => {
 
   const translations = {
     es: {
-      guess: 'Adivinar',
+      guess: 'Mandar',
       roll: 'Tirar Dados',
       believe: 'Creo',
       disbelieve: 'No creo',
@@ -346,31 +357,45 @@ const GameplayPage = ({ params }) => {
       <h1>Room code <b>{gameCode}</b> </h1>
       <p>Current Round: <b>{gameData?.currentRound}</b> </p>
       {/* <p>Actual Total Dice: {actualTotalDice}</p> */}
-      <p>Total Dice value of All Players: <b>{totalDiceSum}</b> </p>
+      {/* <p>Total Dice value of All Players: <b>{totalDiceSum}</b> </p> */}
       <p>Total Dice of All Players  <b>{totalPlayerDice}</b> </p> 
       {/* <p>Round Guess Total: {roundGuessTotal}</p> */}
   
       {error && <p style={{ color: 'red' }}>{error}</p>} 
   
+
+      {/* Roll button to start the game */}
+      {playerCount == gameData?.maxPlayers && !hasRolled && (
+        <div>
+          <button onClick={handleRollDice}>{translations[language].roll}</button>
+          {/* {showGif && (
+            <div className={styles.diceContainer}>
+              <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
+            </div>
+          )} */}
+
+        </div>
+        )}
+
       {gameOver && winner ? (
         <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
       ) : (
         <>
-          {!roundInProgress || !allPlayersRolled ? (
+          {/* Roll button when the game already started */}
+          {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
             <div>
               <button onClick={handleRollDice}>{translations[language].roll}</button>
-                {hasRolled && (
-                  <div className={styles.diceContainer}>
-                     <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
-                  </div>
-                 
-                )}
+              {/* {showGif && (
+                <div className={styles.diceContainer}>
+                  <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
+                </div>
+              )} */}
             </div>
 
           ) : (
             isPlayerTurn() && !Object.keys(playersChallenges).length ? (
               <div>
-                <p>{translations[language].guess}</p>
+                {/* <p>{translations[language].guess}</p> */}
                 <div>
                   {SYMBOLS.map(symbol => (
                     <button key={symbol} onClick={() => handleGuessChange(symbol)}>
@@ -392,9 +417,9 @@ const GameplayPage = ({ params }) => {
                   <p>Previous player guessed {previousPlayerGuessQuantity} {previousPlayerGuess}</p>
                 )} */}
               </div>
-            ) : (
+            ) : ( 
               <p>Waiting for your turn...</p>
-            )
+            ) 
           )}
         </>
       )}
@@ -429,6 +454,13 @@ const GameplayPage = ({ params }) => {
           )} */}
         </div>
       ))}
+
+        {showGif && (
+            <div className={styles.diceContainer}>
+              <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
+            </div>
+          )}
+
 
     {gameData?.players[user.uid]?.rollResults && (
         <div>
