@@ -24,9 +24,9 @@ export const SettingsPopUp = () => {
 
   return (
     <div >
-      <p>text 1 {translations[language].text1}</p>
+      {/* <p>text 1 {translations[language].text1}</p>
       <p>text 2 {translations[language].text2}</p>
-      <p>text 3 {translations[language].text3}</p>
+      <p>text 3 {translations[language].text3}</p> */}
     </div>
   );
 };
