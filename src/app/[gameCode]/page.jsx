@@ -353,126 +353,140 @@ const GameplayPage = ({ params }) => {
   }
 
   return (
-    <div>
-      <h1>Room code <b>{gameCode}</b> </h1>
-      <p>Current Round: <b>{gameData?.currentRound}</b> </p>
-      {/* <p>Actual Total Dice: {actualTotalDice}</p>
-      <p>Total Dice value of All Players: <b>{totalDiceSum}</b> </p> */}
-      <p>Total Dice of All Players  <b>{totalPlayerDice}</b> </p> 
-      {/* <p>Round Guess Total: {roundGuessTotal}</p> */}
+    <div className={styles.pageContainer}>
+      <div className={styles.background}></div>
+
+      <div className={styles.gameStatistics}>
+        <h1>Room code <b>{gameCode}</b> </h1>
+        <p>Current Round: <b>{gameData?.currentRound}</b> </p>
+        {/* <p>Actual Total Dice: {actualTotalDice}</p>
+        <p>Total Dice value of All Players: <b>{totalDiceSum}</b> </p> */}
+        <p>Total Dice of All Players  <b>{totalPlayerDice}</b> </p> 
+        {/* <p>Round Guess Total: {roundGuessTotal}</p> */}
+    
+        {error && <p style={{ color: 'red' }}>{error}</p>} 
+
+        {/* Roll button to start the game */}
+        {playerCount == gameData?.maxPlayers && !hasRolled && (
+          <div>
+            <button onClick={handleRollDice}>{translations[language].roll}</button>
+            {/* {showGif && (
+              <div className={styles.diceContainer}>
+                <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
+              </div>
+            )} */}
+
+          </div>
+          )}
+
+
+
+      </div>
+
   
-      {error && <p style={{ color: 'red' }}>{error}</p>} 
-  
 
-      {/* Roll button to start the game */}
-      {playerCount == gameData?.maxPlayers && !hasRolled && (
-        <div>
-          <button onClick={handleRollDice}>{translations[language].roll}</button>
-          {/* {showGif && (
-            <div className={styles.diceContainer}>
-              <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
-            </div>
-          )} */}
+      <div className={styles.gameControls}>
 
-        </div>
-        )}
-
-      {gameOver && winner ? (
-        <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
-      ) : (
-        <>
-          {/* Roll button when the game already started */}
-          {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
-            <div>
-              <button onClick={handleRollDice}>{translations[language].roll}</button>
-              {/* {showGif && (
-                <div className={styles.diceContainer}>
-                  <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
-                </div>
-              )} */}
-            </div>
-
-          ) : (
-            isPlayerTurn() && !Object.keys(playersChallenges).length ? (
+        {gameOver && winner ? (
+          <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
+        ) : (
+          <>
+            {/* Roll button when the game already started */}
+            {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
               <div>
-                {/* <p>{translations[language].guess}</p> */}
-                <div>
-                  {SYMBOLS.map(symbol => (
-                    <button key={symbol} onClick={() => handleGuessChange(symbol)}>
-                      {symbol}
-                    </button>
-                  ))}
-                </div>
-                <div>
-                  <button onClick={() => handleQuantityChange(-1)}>-</button>
-                  <span>{playerGuessQuantity}</span>
-                  <button onClick={() => handleQuantityChange(1)}>+</button>
-                </div>
-                <div>
-                  <button onClick={handleGuessSubmit}>
-                    {translations[language].guess} {playerGuessQuantity} {playerGuess}
-                  </button>
-                </div>
-                {/* {previousPlayerGuess && (
-                  <p>Previous player guessed {previousPlayerGuessQuantity} {previousPlayerGuess}</p>
+                <button onClick={handleRollDice}>{translations[language].roll}</button>
+                {/* {showGif && (
+                  <div className={styles.diceContainer}>
+                    <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
+                  </div>
                 )} */}
               </div>
-            ) : ( 
-              <p>Waiting for your turn...</p>
-            ) 
-          )}
-        </>
-      )}
-  
+
+            ) : (
+              isPlayerTurn() && !Object.keys(playersChallenges).length ? (
+                <div>
+                  {/* <p>{translations[language].guess}</p> */}
+                  <div>
+                    {SYMBOLS.map(symbol => (
+                      <button key={symbol} onClick={() => handleGuessChange(symbol)}>
+                        {symbol}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={styles.moreLessButtons}>
+                    <button onClick={() => handleQuantityChange(-1)}>-</button>
+                    <span>{playerGuessQuantity}</span>
+                    <button onClick={() => handleQuantityChange(1)}>+</button>
+                  </div>
+                  <div>
+                    <button onClick={handleGuessSubmit}>
+                      {translations[language].guess} {playerGuessQuantity} {playerGuess}
+                    </button>
+                  </div>
+                  {/* {previousPlayerGuess && (
+                    <p>Previous player guessed {previousPlayerGuessQuantity} {previousPlayerGuess}</p>
+                  )} */}
+                </div>
+              ) : ( 
+                <p>Waiting for your turn...</p>
+              ) 
+            )}
+          </>
+        )}
+    
 
 
-      {roundInProgress && allPlayersRolled && (
-        <>
-          {!Object.keys(playersChallenges).length ? (
-            <button onClick={() => handleChallenge(false)}>{translations[language].disbelieve}</button>
-          ) : (
-            <div>
-              <button onClick={() => handleChallenge(true)}>{translations[language].believe}</button>
+        {roundInProgress && allPlayersRolled && (
+          <>
+            {!Object.keys(playersChallenges).length ? (
               <button onClick={() => handleChallenge(false)}>{translations[language].disbelieve}</button>
-            </div>
+            ) : (
+              <div>
+                <button onClick={() => handleChallenge(true)}>{translations[language].believe}</button>
+                <button onClick={() => handleChallenge(false)}>{translations[language].disbelieve}</button>
+              </div>
+            )}
+          </>
+        )}
+
+          {previousPlayerGuess && (
+            <p>Last player move <b>{previousPlayerGuessQuantity} {previousPlayerGuess}</b></p>
           )}
-        </>
-      )}
-
-        {previousPlayerGuess && (
-           <p>Last player move <b>{previousPlayerGuessQuantity} {previousPlayerGuess}</b></p>
-         )}
-  
-      {gameData?.players && Object.values(gameData.players).map((player, index )=> (
-        
-        <div key={index}>{console.log("player.uid HERE HERE", player.uid)}
-          <p>{player.name}:  <b>{player.dice} dice</b> </p>
-          {/* {  player.rollResults && (
-            <p>Rolled: {player.rollResults.join(', ')}</p>
-          )}
-          {player.uid === user.uid && player.dice === 0 && (
-            <p>{translations[language].lostMessage}</p>
-          )} */}
-        </div>
-      ))}
-
-        {showGif && (
-            <div className={styles.diceContainer}>
-              <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
-            </div>
-          )}
-
-
-    {gameData?.players[user.uid]?.rollResults && (
-        <div>
-          <h3>Your Dice Roll Results:</h3>
-          <div>
-            {gameData.players[user.uid].rollResults.map((result, index) => (
-              <b key={index}>{result}, </b>
-            ))}
+    
+        {gameData?.players && Object.values(gameData.players).map((player, index )=> (
+          
+          <div key={index}>{console.log("player.uid HERE HERE", player.uid)}
+            <p>{player.name}:  <b>{player.dice} dice</b> </p>
+            {/* {  player.rollResults && (
+              <p>Rolled: {player.rollResults.join(', ')}</p>
+            )}
+            {player.uid === user.uid && player.dice === 0 && (
+              <p>{translations[language].lostMessage}</p>
+            )} */}
           </div>
-        </div>
-      )}
+        ))}
+
+          {showGif && (
+              <div className={styles.diceContainer}>
+                <img className={styles.diceImg} src="/images/cup.gif" alt="Rolling" />
+              </div>
+            )}
+
+
+      {gameData?.players[user.uid]?.rollResults && (
+          <div>
+            <h3>Your Dice Roll Results:</h3>
+            <div>
+              {gameData.players[user.uid].rollResults.map((result, index) => (
+                <b key={index}>{result}, </b>
+              ))}
+            </div>
+          </div>
+        )}
+
+
+      </div>
+
 
 
     </div>
