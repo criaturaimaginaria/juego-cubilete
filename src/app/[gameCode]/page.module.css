@@ -96,6 +96,25 @@
     height: 100%;
 }
 
+.myInfo {
+    border: 2px solid #333;
+    background-color: #f5f5f566;
+  }
+  
+
+  .movesList {
+    width: 60%; 
+    max-height: 17em; 
+    overflow-y: auto; 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+  }
+  
+  .movesContent {
+    max-height: inherit;
+    overflow-y: inherit;
+  }
+
 /* desktop */
 @media (min-width: 1024px) {
 
