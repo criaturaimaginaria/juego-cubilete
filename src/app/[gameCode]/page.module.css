@@ -102,19 +102,18 @@
   }
   
 
-
-  .historyContainer {
-    margin-top: 20px;
+  .movesList {
+    width: 60%; 
+    max-height: 17em; 
+    overflow-y: auto; 
+    border: 1px solid #ccc; 
+    padding: 10px; 
   }
   
-  .historyBox {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    background-color: #f9f9f9;
+  .movesContent {
+    max-height: inherit;
+    overflow-y: inherit;
   }
-  
 
 /* desktop */
 @media (min-width: 1024px) {
