@@ -72,8 +72,6 @@ const GameplayPage = ({ params }) => {
         setTotalPlayerDice(calculateTotalPlayerDice(data.players));
         setAllPlayersRolled(data.allPlayersRolled || false); 
         setPlayersChallenges(data.playersChallenges || {});
-          console.log( "data FULL", data)
-
 
           if (data.roundResultsMessage) {
             setRoundResultsMessage(data.roundResultsMessage);
@@ -131,7 +129,6 @@ const GameplayPage = ({ params }) => {
     if (believe === true || believe === false) {
       moveData.believe = believe;
     }
-    console.log("Move Data being saved:", moveData);
     update(newMoveRef, moveData);
   };
 
@@ -600,7 +597,7 @@ const myPlayerName = getMyPlayerName();
     
         {gameData?.players && Object.values(gameData.players).map((player, index )=> (
           
-          <div key={index}>{console.log("player.uid HERE HERE", player.uid)}
+          <div key={index}>
             <p>{player.name}:  <b>{player.dice} dice</b> </p>
           </div>
         ))}
