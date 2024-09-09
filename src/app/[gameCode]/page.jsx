@@ -50,6 +50,7 @@ const GameplayPage = ({ params }) => {
   const [roundResultsMessage, setRoundResultsMessage] = useState('');
   const [visibleResults, setVisibleResults] = useState(true);
   const [moves, setMoves] = useState([]);
+  const [secondToLastPlayerUID, setSecondToLastPlayerUID] = useState(null);
 
 
   const toggleVisibility = () => {
@@ -115,6 +116,20 @@ const GameplayPage = ({ params }) => {
     return () => unsubscribe();
   }, [gameCode]);
   
+
+  useEffect(() => {
+    const secondToLastPlayerRef = ref(db, `games/${gameCode}/secondToLastPlayerUID`);
+    const handleData = (snapshot) => {
+      const data = snapshot.val();
+      setSecondToLastPlayerUID(data);
+    };
+  
+    const unsubscribe = onValue(secondToLastPlayerRef, handleData);
+
+    return () => unsubscribe();
+  }, [gameCode]);
+  
+
   
   const logPlayerMove = (uid, guess, believe) => {
     const movesRef = ref(db, `games/${gameCode}/moves`);
@@ -292,6 +307,12 @@ const myPlayerName = getMyPlayerName();
 
 
   const handleChallenge = (believe) => {
+
+  if (secondToLastPlayerUID === null) {
+    const secondToLastUID = moves.length >= 2 ? moves[moves.length - 1].uid : null;
+    update(ref(db, `games/${gameCode}`), { secondToLastPlayerUID: secondToLastUID });
+  }
+
     const newChallenges = { ...playersChallenges, [user.uid]: believe };
     setPlayersChallenges(newChallenges);
     update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
@@ -305,6 +326,7 @@ const myPlayerName = getMyPlayerName();
       });
       setShowGif(false)
   };
+
   
   const endRound = (challenges) => {
     const updates = {};
@@ -341,6 +363,10 @@ const myPlayerName = getMyPlayerName();
     updates['roundGuessTotal'] = 0;
     updates['playersChallenges'] = {};
     updates['currentTurn'] = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0)[0];
+
+      // Restablece el valor en la base de datos
+    update(ref(db, `games/${gameCode}`), { secondToLastPlayerUID: null });
+    setSecondToLastPlayerUID(null);
 
     for (let playerId in gameData.players) {
       updates[`players/${playerId}/hasRolled`] = false;
@@ -563,19 +589,55 @@ const myPlayerName = getMyPlayerName();
                 </button>
               ) : (
                 <div>
-                  <button 
+                  {/* <button 
                     onClick={() => handleChallenge(true)} 
                     disabled={hasPlayerChosen(user.uid)} 
                     style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
                   >
                     {translations[language].believe}
-                  </button>
+                  </button> */}
+{/* 
+                  {
+                      secondToLastPlayerUID ? (
+                        secondToLastPlayerUID === user.uid ? (
+                          <>BELIEVE</>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={() => handleChallenge(false)} 
+                              disabled={hasPlayerChosen(user.uid)} 
+                              style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                            >
+                              Disbelieve
+                            </button>
+                          </>
+                        )
+                      ) : (
+                        <p>Loading...</p>
+                      )
+                  } */}
                   
-                  {isSecondToLastPlayer(moves, user.uid) ? (
-                    <></>
+                  {secondToLastPlayerUID === user?.uid ?  (
+                    <>
+                    <button 
+                      onClick={() => handleChallenge(true)} 
+                      disabled={hasPlayerChosen(user.uid)} 
+                      style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                    >
+                      {translations[language].believe}
+                    </button>
+        
+                    </>
 
                   ) : (
                     <>
+                                        <button 
+                      onClick={() => handleChallenge(true)} 
+                      disabled={hasPlayerChosen(user.uid)} 
+                      style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                    >
+                      {translations[language].believe}
+                    </button>
                       <button 
                         onClick={() => handleChallenge(false)} 
                         disabled={hasPlayerChosen(user.uid)} 
