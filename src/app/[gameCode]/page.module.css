@@ -115,6 +115,14 @@
     overflow-y: inherit;
   }
 
+  .lostText{
+    color:red;
+    margin-left:auto;
+    margin-right: auto;
+    padding: 0.5em;
+    font-size:1.6em;
+  }
+
 /* desktop */
 @media (min-width: 1024px) {
 
