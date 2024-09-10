@@ -52,6 +52,7 @@ const GameplayPage = ({ params }) => {
   const [moves, setMoves] = useState([]);
   const [secondToLastPlayerUID, setSecondToLastPlayerUID] = useState(null);
 
+  console.log("gamedata", gameData?.players[user.uid].dice === 0 ? "you lost" : "podes jugar")
 
   const toggleVisibility = () => {
     setVisibleResults(prevState => !prevState);
@@ -147,17 +148,10 @@ const GameplayPage = ({ params }) => {
     update(newMoveRef, moveData);
   };
 
-
-  const isSecondToLastPlayer = (moves, userUID) => {
-    if (moves.length < 2) return false; // No hay suficiente historial de jugadas
-    const secondToLastMove = moves[moves.length - 2]; // Anteúltimo movimiento
-    return secondToLastMove.uid === userUID; // si el UID del jugador coincide con el del anteúltimo
-  };
   
   const hasPlayerChosen = (uid) => {
     return playersChallenges && playersChallenges[uid] !== undefined;
   };
-  
   
  
   const checkAllPlayersRolled = (players) => {
@@ -182,7 +176,7 @@ const GameplayPage = ({ params }) => {
         baseValueSum = increment - 6;
     }
 
-    return null; // Caso no válido
+    return null;
 }
 
   
@@ -238,8 +232,9 @@ const myPlayerName = getMyPlayerName();
             [user.uid]: { ...gameData.players[user.uid], rollResults, hasRolled: true }
           };
   
-          const allPlayersRolled = Object.values(updatedPlayers).every(player => player.hasRolled);
-  
+          // const allPlayersRolled = Object.values(updatedPlayers).every(player => player.hasRolled);
+          const allPlayersRolled = Object.values(updatedPlayers).filter(player => player.dice > 0).every(player => player.hasRolled);
+
           if (allPlayersRolled) {
             const newTotalDice = calculateTotalDice(updatedPlayers);
   
@@ -249,6 +244,11 @@ const myPlayerName = getMyPlayerName();
               allPlayersRolled: true 
             });
           }
+        });
+      }else {
+        // If the player has no dice then they are marked as having rolled anyways :p
+        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+          hasRolled: true
         });
       }
     }
@@ -317,11 +317,19 @@ const myPlayerName = getMyPlayerName();
     setPlayersChallenges(newChallenges);
     update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
       .then(() => {
-        // Verifica si todos los jugadores han hecho su elección
+        // Verifica si todos los jugadores hicieron su elección
         logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, believe);
 
-        if (Object.keys(newChallenges).length === Object.keys(gameData.players).length) {
-          endRound(newChallenges); // Si todos eligieron  termina la ronda
+        const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
+
+        // si los jugadores activos hicieron su elección
+        const allPlayersChallenged = activePlayers.every(uid => newChallenges[uid] !== undefined);
+
+        // if (Object.keys(newChallenges).length === Object.keys(gameData.players).length) {
+        //   endRound(newChallenges); // Si todos eligieron  termina la ronda
+        // }
+        if (allPlayersChallenged) {
+          endRound(newChallenges); 
         }
       });
       setShowGif(false)
@@ -357,6 +365,20 @@ const myPlayerName = getMyPlayerName();
 
       updates[`players/${uid}/rollResult`] = null;
     });
+
+    Object.entries(gameData.players).forEach(([uid, player]) => {
+      if (player.dice <= 0) {
+        // Elimina al jugador si tiene 0 dados
+        updates[`players/${uid}/isActive`] = false;
+      }
+    });
+    // select el siguiente turno solo de jugadores activos:
+    const nextTurnPlayer = getNextTurn();
+    if (nextTurnPlayer) {
+      updates['currentTurn'] = nextTurnPlayer;
+    } else {
+      checkForWinner(gameData.players, gameData.currentRound);
+    }
 
     updates['roundInProgress'] = false;
     updates['currentRound'] = gameData.currentRound + 1;
@@ -422,6 +444,9 @@ const myPlayerName = getMyPlayerName();
 
   const getNextTurn = () => {
     const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
+    if (activePlayers.length === 0) {
+      return null; 
+    }
     const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
     return activePlayers[(currentTurnIndex + 1) % activePlayers.length];
   };
@@ -451,7 +476,7 @@ const myPlayerName = getMyPlayerName();
       disbelieve: 'No creo',
       endRound: 'Frenar Ronda',
       winMessage: 'ha ganado el juego!',
-      lostMessage: 'Has perdido. No puedes participar más.',
+      lostMessage: 'Has perdido.',
     },
     en: {
       guess: 'Guess',
@@ -460,7 +485,7 @@ const myPlayerName = getMyPlayerName();
       disbelieve: 'Disbelieve',
       endRound: 'End Round',
       winMessage: 'has won the game!',
-      lostMessage: 'You have lost. You cannot participate anymore.',
+      lostMessage: 'You have lost.',
     },
   };
 
@@ -513,144 +538,140 @@ const myPlayerName = getMyPlayerName();
       </div>
 
 
-
         <div className={styles.gameControls}>
           {gameOver && winner ? (
-            <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
-          ) : (
-            <>
-              {roundResultsMessage && (
-                <button onClick={() => setVisibleResults(!visibleResults)}>
-                 { visibleResults ? 'Ocultar' : 'Mostrar'} 
-                </button>
+                <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
+              ) : (
+                <>
+                  {roundResultsMessage && (
+                    <button onClick={() => setVisibleResults(!visibleResults)}>
+                    { visibleResults ? 'Ocultar' : 'Mostrar'} 
+                    </button>
+                  )}
+
+                  {visibleResults && (
+                    <div className="message-box">
+                      {roundResultsMessage && <p>{roundResultsMessage}</p>}
+                    </div>
+                  )}
+                </>
+              )}
+        </div>
+
+
+
+      {gameData?.players[user.uid].dice === 0 ? (
+        <div className={styles.lostText}>
+          {translations[language].lostMessage}
+        </div>
+        ) : (
+        <div>
+          <div className={styles.gameControls}>
+            {gameOver && winner ? (
+                <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
+              ) : (
+                <>
+                  {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
+                    <div>
+                      <button onClick={handleRollDice}>{translations[language].roll}</button>
+                    </div>
+
+                  ) : (
+                    isPlayerTurn() && !Object.keys(playersChallenges).length ? (
+                      <div>
+                        <div>
+                          {SYMBOLS.map(symbol => (
+                            <button key={symbol} onClick={() => handleGuessChange(symbol)}>
+                              {symbol}
+                            </button>
+                          ))}
+                        </div>
+                        <div className={styles.moreLessButtons}>
+                          <button onClick={() => handleQuantityChange(-1)}>-</button>
+                          <span>{playerGuessQuantity}</span>
+                          <button onClick={() => handleQuantityChange(1)}>+</button>
+                        </div>
+                        <div>
+                          <button onClick={handleGuessSubmit}>
+                            {translations[language].guess} {playerGuessQuantity} {playerGuess}
+                          </button>
+                        </div>
+                      </div>
+                    ) : ( 
+                      <p>Waiting for your turn...</p>
+                    ) 
+                  )}
+                </>
               )}
 
-              {visibleResults && (
-                <div className="message-box">
-                   {roundResultsMessage && <p>{roundResultsMessage}</p>}
-                </div>
-              )}
-            </>
-          )}
+
+            {roundInProgress && allPlayersRolled && (
+              <>
+                {!Object.keys(playersChallenges).length ? (
+                  <button 
+                    onClick={() => handleChallenge(false)} 
+                    disabled={hasPlayerChosen(user.uid)} 
+                    style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                  >
+                    {translations[language].disbelieve}
+                  </button>
+                ) : (
+                  <div>
+                    {/* <button 
+                      onClick={() => handleChallenge(true)} 
+                      disabled={hasPlayerChosen(user.uid)} 
+                      style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                    >
+                      {translations[language].believe}
+                    </button> */}
+
+                    {secondToLastPlayerUID === user?.uid ?  (
+                      <>
+                      <button 
+                        onClick={() => handleChallenge(true)} 
+                        disabled={hasPlayerChosen(user.uid)} 
+                        style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                      >
+                        {translations[language].believe}
+                      </button>
+          
+                      </>
+
+                    ) : (
+                      <>
+                      <button 
+                        onClick={() => handleChallenge(true)} 
+                        disabled={hasPlayerChosen(user.uid)} 
+                        style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                      >
+                        {translations[language].believe}
+                      </button>
+                        <button 
+                          onClick={() => handleChallenge(false)} 
+                          disabled={hasPlayerChosen(user.uid)} 
+                          style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                        >
+                          Disbelieve
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+          </div>
         </div>
+        )}
+
+
 
 
   
 
       <div className={styles.gameControls}>
 
-        {gameOver && winner ? (
-          <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
-        ) : (
-          <>
-            {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
-              <div>
-                <button onClick={handleRollDice}>{translations[language].roll}</button>
-              </div>
 
-            ) : (
-              isPlayerTurn() && !Object.keys(playersChallenges).length ? (
-                <div>
-                  <div>
-                    {SYMBOLS.map(symbol => (
-                      <button key={symbol} onClick={() => handleGuessChange(symbol)}>
-                        {symbol}
-                      </button>
-                    ))}
-                  </div>
-                  <div className={styles.moreLessButtons}>
-                    <button onClick={() => handleQuantityChange(-1)}>-</button>
-                    <span>{playerGuessQuantity}</span>
-                    <button onClick={() => handleQuantityChange(1)}>+</button>
-                  </div>
-                  <div>
-                    <button onClick={handleGuessSubmit}>
-                      {translations[language].guess} {playerGuessQuantity} {playerGuess}
-                    </button>
-                  </div>
-                </div>
-              ) : ( 
-                <p>Waiting for your turn...</p>
-              ) 
-            )}
-          </>
-        )}
-    
-
-          {roundInProgress && allPlayersRolled && (
-            <>
-              {!Object.keys(playersChallenges).length ? (
-                <button 
-                  onClick={() => handleChallenge(false)} 
-                  disabled={hasPlayerChosen(user.uid)} 
-                  style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
-                >
-                  {translations[language].disbelieve}
-                </button>
-              ) : (
-                <div>
-                  {/* <button 
-                    onClick={() => handleChallenge(true)} 
-                    disabled={hasPlayerChosen(user.uid)} 
-                    style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
-                  >
-                    {translations[language].believe}
-                  </button> */}
-{/* 
-                  {
-                      secondToLastPlayerUID ? (
-                        secondToLastPlayerUID === user.uid ? (
-                          <>BELIEVE</>
-                        ) : (
-                          <>
-                            <button 
-                              onClick={() => handleChallenge(false)} 
-                              disabled={hasPlayerChosen(user.uid)} 
-                              style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
-                            >
-                              Disbelieve
-                            </button>
-                          </>
-                        )
-                      ) : (
-                        <p>Loading...</p>
-                      )
-                  } */}
-                  
-                  {secondToLastPlayerUID === user?.uid ?  (
-                    <>
-                    <button 
-                      onClick={() => handleChallenge(true)} 
-                      disabled={hasPlayerChosen(user.uid)} 
-                      style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
-                    >
-                      {translations[language].believe}
-                    </button>
-        
-                    </>
-
-                  ) : (
-                    <>
-                                        <button 
-                      onClick={() => handleChallenge(true)} 
-                      disabled={hasPlayerChosen(user.uid)} 
-                      style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
-                    >
-                      {translations[language].believe}
-                    </button>
-                      <button 
-                        onClick={() => handleChallenge(false)} 
-                        disabled={hasPlayerChosen(user.uid)} 
-                        style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
-                      >
-                        Disbelieve
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </>
-          )}
 
 
           {previousPlayerGuess && (
