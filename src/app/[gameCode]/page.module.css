@@ -104,7 +104,7 @@
 
   .movesList {
     width: 60%; 
-    max-height: 17em; 
+    max-height: 9em; 
     overflow-y: auto; 
     border: 1px solid #ccc; 
     padding: 10px; 

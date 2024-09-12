@@ -28,7 +28,6 @@ const GameplayPage = ({ params }) => {
   const [playerGuessQuantity, setPlayerGuessQuantity] = useState(1);
   const [roundGuessTotal, setRoundGuessTotal] = useState(0);
   const [actualTotalDice, setActualTotalDice] = useState(0);
-  const [totalDiceSum, setTotalDiceSum] = useState(0);
   const [roundInProgress, setRoundInProgress] = useState(true);
   const [allPlayersRolled, setAllPlayersRolled] = useState(false);
   const [playersChallenges, setPlayersChallenges] = useState({});
@@ -40,7 +39,6 @@ const GameplayPage = ({ params }) => {
   const [error, setError] = useState('');
   const [totalPlayerDice, setTotalPlayerDice] = useState(0);
 
-  
   const [previousPlayerGuess, setPreviousPlayerGuess] = useState(null);
   const [previousPlayerGuessQuantity, setPreviousPlayerGuessQuantity] = useState(0);
   const [hasRolled, setHasRolled] = useState(false);
@@ -51,12 +49,96 @@ const GameplayPage = ({ params }) => {
   const [visibleResults, setVisibleResults] = useState(true);
   const [moves, setMoves] = useState([]);
   const [secondToLastPlayerUID, setSecondToLastPlayerUID] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(25); 
+  // const [timeLeft2, setTimeLeft2] = useState(15); 
 
-  console.log("gamedata", gameData?.players[user.uid].dice === 0 ? "you lost" : "podes jugar")
+  useEffect(() => {
+    if (gameData?.currentTurn === user?.uid && (roundInProgress == true && allPlayersRolled == true ) && gameData?.challengeStatus === false  ) {
+      const timer = setTimeout(() => {
+        const autoGuessTotal = roundGuessTotal + 1;
+        handleAutoGuessSubmit(autoGuessTotal);
+      }, 25000); 
+  
+      return () => clearTimeout(timer); 
+    }
+  }, [gameData?.currentTurn, roundGuessTotal, gameData?.challengeStatus, allPlayersRolled]); 
+  
+  useEffect(() => {
+    let timer;
+    if (gameData?.currentTurn && (roundInProgress == true && allPlayersRolled == true ) && gameData?.challengeStatus === false   ) {
+      setTimeLeft(25);
+      // Temporizador que cuenta regresivamente cada segundo.
+      timer = setInterval(() => {
+        setTimeLeft(prevTime => {
+          if (prevTime > 1) {
+            return prevTime - 1;
+          } else {
+            clearInterval(timer); 
+            return 0; 
+          }
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [gameData?.currentTurn, gameData?.challengeStatus, allPlayersRolled, roundInProgress]);
 
-  const toggleVisibility = () => {
-    setVisibleResults(prevState => !prevState);
+
+  const handleAutoGuessSubmit = (autoGuessTotal) => {
+    const newGuessTotal = getDiceValue(roundGuessTotal + 1, playerGuessQuantity);
+    if (autoGuessTotal > roundGuessTotal) { 
+
+      const updates = {
+        roundGuessTotal: autoGuessTotal,
+        previousPlayerGuess: playerGuess,
+        previousPlayerGuessQuantity: playerGuessQuantity,
+        currentTurn: getNextTurn()
+      };
+
+      setPreviousPlayerGuess(playerGuess);
+      setPreviousPlayerGuessQuantity(playerGuessQuantity);
+      setRoundGuessTotal(autoGuessTotal);
+      update(ref(db, `games/${gameCode}`), { roundGuessTotal: autoGuessTotal, currentTurn: getNextTurn() });
+      setPlayerGuess('');
+      setPlayerGuessQuantity(1);
+      setError('');
+
+      update(ref(db, `games/${gameCode}`), updates)
+      .then(() => {
+        logPlayerMove(user.uid, translateNumberToSymbol(autoGuessTotal), undefined);
+        setPlayerGuess('');
+        setPlayerGuessQuantity(1);
+        setError(''); 
+      })
+      .catch(error => setError(`Error updating guess: ${error.message}`));
+    }
   };
+  
+  // believe disbelieve timer--------------
+
+  // useEffect(() => {
+  //   let timer;
+  //   if (gameData?.challengeStatus === true) {
+  //     setTimeLeft2(15); 
+  
+  //     timer = setInterval(() => {
+  //       setTimeLeft2(prevTime => {
+  //         if (prevTime > 1) {
+  //           return prevTime - 1;
+  //         } else {
+  //           clearInterval(timer); 
+  //           if (user?.uid === secondToLastPlayerUID) {
+  //             handleChallenge(true); 
+  //           } else {
+  //             handleChallenge(false);
+  //           }
+  //           return 0;
+  //         }
+  //       });
+  //     }, 1000);
+  //   }
+  
+  //   return () => clearInterval(timer);
+  // }, [gameData?.challengeStatus, secondToLastPlayerUID, user?.uid]);
 
   useEffect(() => {
     if (!gameCode) return;
@@ -70,7 +152,6 @@ const GameplayPage = ({ params }) => {
         setPlayerCount(Object.keys(data.players || {}).length);
         setRoundGuessTotal(data.roundGuessTotal || 0);
         setActualTotalDice(data.actualTotalDice);
-        setTotalDiceSum(calculateTotalDice(data.players));
         setTotalPlayerDice(calculateTotalPlayerDice(data.players));
         setAllPlayersRolled(data.allPlayersRolled || false); 
         setPlayersChallenges(data.playersChallenges || {});
@@ -145,7 +226,10 @@ const GameplayPage = ({ params }) => {
     if (believe === true || believe === false) {
       moveData.believe = believe;
     }
-    update(newMoveRef, moveData);
+    if (!moves.some(move => move.uid === uid && move.guess === guess)) {
+      update(newMoveRef, moveData);
+    }
+    // update(newMoveRef, moveData);
   };
 
   
@@ -232,7 +316,6 @@ const myPlayerName = getMyPlayerName();
             [user.uid]: { ...gameData.players[user.uid], rollResults, hasRolled: true }
           };
   
-          // const allPlayersRolled = Object.values(updatedPlayers).every(player => player.hasRolled);
           const allPlayersRolled = Object.values(updatedPlayers).filter(player => player.dice > 0).every(player => player.hasRolled);
 
           if (allPlayersRolled) {
@@ -241,7 +324,8 @@ const myPlayerName = getMyPlayerName();
             update(ref(db, `games/${gameCode}`), {
               actualTotalDice: newTotalDice,
               roundInProgress: true,
-              allPlayersRolled: true 
+              allPlayersRolled: true ,
+              challengeStatus: false 
             });
           }
         });
@@ -267,7 +351,6 @@ const myPlayerName = getMyPlayerName();
   };
 
 
-  
   const handleGuessSubmit = () => {
     if (playerGuess) {
       const newGuessTotal = getDiceValue(playerGuess, playerGuessQuantity);
@@ -304,32 +387,32 @@ const myPlayerName = getMyPlayerName();
   };
   
   
-
-
   const handleChallenge = (believe) => {
-
   if (secondToLastPlayerUID === null) {
     const secondToLastUID = moves.length >= 2 ? moves[moves.length - 1].uid : null;
     update(ref(db, `games/${gameCode}`), { secondToLastPlayerUID: secondToLastUID });
   }
 
     const newChallenges = { ...playersChallenges, [user.uid]: believe };
-    setPlayersChallenges(newChallenges);
-    update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
+    setPlayersChallenges(newChallenges)
+    // update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
+
+  update(ref(db, `games/${gameCode}`), { 
+    playersChallenges: newChallenges,
+    challengeStatus: true 
+  })
       .then(() => {
         // Verifica si todos los jugadores hicieron su elección
         logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, believe);
-
         const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
-
         // si los jugadores activos hicieron su elección
         const allPlayersChallenged = activePlayers.every(uid => newChallenges[uid] !== undefined);
 
-        // if (Object.keys(newChallenges).length === Object.keys(gameData.players).length) {
-        //   endRound(newChallenges); // Si todos eligieron  termina la ronda
-        // }
         if (allPlayersChallenged) {
           endRound(newChallenges); 
+          update(ref(db, `games/${gameCode}`), { 
+            challengeStatus: false 
+          })
         }
       });
       setShowGif(false)
@@ -342,7 +425,6 @@ const myPlayerName = getMyPlayerName();
 
     Object.entries(gameData.players).forEach(([uid, player]) => {
       let messagePart = `${player.name} `;
-
       // disbelieve
       if (challenges[uid] === false) {
         if (actualTotalDice > roundGuessTotal) {
@@ -385,6 +467,7 @@ const myPlayerName = getMyPlayerName();
     updates['roundGuessTotal'] = 0;
     updates['playersChallenges'] = {};
     updates['currentTurn'] = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0)[0];
+    updates['challengeStatus'] = false; // Cambia challengeStatus a false
 
       // Restablece el valor en la base de datos
     update(ref(db, `games/${gameCode}`), { secondToLastPlayerUID: null });
@@ -399,20 +482,15 @@ const myPlayerName = getMyPlayerName();
 
     updates['roundResultsMessage'] = resultsMessage;
 
-
     // Actualiza el mensaje de resultados de la ronda
     setRoundResultsMessage(resultsMessage);
 
     update(ref(db, `games/${gameCode}`), updates)
       .then(() => {
-        const newTotalDice = calculateTotalDice(gameData.players);
-        setTotalDiceSum(newTotalDice);
         checkForWinner(gameData.players, gameData.currentRound + 1);
       });
 };
 
-  
-  
   const calculateTotalPlayerDice = (players) => {
     let totalDice = 0;
   
@@ -423,8 +501,6 @@ const myPlayerName = getMyPlayerName();
   
     return totalDice;
   };
-  
-  
 
   const calculateTotalDice = (players) => {
     let total = 0;
@@ -440,7 +516,6 @@ const myPlayerName = getMyPlayerName();
   
     return total;
   };
-
 
   const getNextTurn = () => {
     const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
@@ -517,15 +592,13 @@ const myPlayerName = getMyPlayerName();
         <p>Current Round: <b>{gameData?.currentRound}</b> </p>
         <p>Actual Total Dice value: {actualTotalDice}</p>
         <p>Actual Total Dice value: {translateNumberToSymbol(actualTotalDice)}</p>
-
-        {/* <p>Total Dice value of All Players: <b>{totalDiceSum}</b> </p> */}
+        <p>Tiempo restante: <b style={{ color: timeLeft <= 7 ? 'red' : 'black' }}>{timeLeft}</b></p>
+        {/* <p>Tiempo restante2: <b style={{ color: timeLeft2 <= 7 ? 'red' : 'black' }}>{timeLeft2}</b></p> */}
         <p>Total Dice of All Players  <b>{totalPlayerDice}</b> </p> 
         <p>round guess total <b>{roundGuessTotal}</b></p>
         <p>round guess total <b>{translateNumberToSymbol(roundGuessTotal)}</b></p>
-        {/* <p>Round Guess Total: {roundGuessTotal}</p> */}
         <p>It's <b>{getCurrentPlayerName()}</b>'s turn</p>
 
-    
         {error && <p style={{ color: 'red' }}>{error}</p>} 
 
         {playerCount == gameData?.maxPlayers && !hasRolled && (
@@ -534,9 +607,7 @@ const myPlayerName = getMyPlayerName();
           </div>
           )}
 
-
       </div>
-
 
         <div className={styles.gameControls}>
           {gameOver && winner ? (
@@ -557,8 +628,6 @@ const myPlayerName = getMyPlayerName();
                 </>
               )}
         </div>
-
-
 
       {gameData?.players[user.uid].dice === 0 ? (
         <div className={styles.lostText}>
@@ -617,24 +686,16 @@ const myPlayerName = getMyPlayerName();
                   </button>
                 ) : (
                   <div>
-                    {/* <button 
-                      onClick={() => handleChallenge(true)} 
-                      disabled={hasPlayerChosen(user.uid)} 
-                      style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
-                    >
-                      {translations[language].believe}
-                    </button> */}
 
                     {secondToLastPlayerUID === user?.uid ?  (
                       <>
-                      <button 
-                        onClick={() => handleChallenge(true)} 
-                        disabled={hasPlayerChosen(user.uid)} 
-                        style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
-                      >
-                        {translations[language].believe}
-                      </button>
-          
+                        <button 
+                          onClick={() => handleChallenge(true)} 
+                          disabled={hasPlayerChosen(user.uid)} 
+                          style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                        >
+                          {translations[language].believe}
+                        </button>
                       </>
 
                     ) : (
@@ -665,14 +726,7 @@ const myPlayerName = getMyPlayerName();
         )}
 
 
-
-
-  
-
       <div className={styles.gameControls}>
-
-
-
 
           {previousPlayerGuess && (
             <p>Last move/dados mandados: <b>{previousPlayerGuessQuantity} {previousPlayerGuess}</b></p>
@@ -691,7 +745,6 @@ const myPlayerName = getMyPlayerName();
               </div>
             )}
 
-
       {gameData?.players[user.uid]?.rollResults && (
           <div>
             <h3>Your Dice Roll Results:</h3>
@@ -703,7 +756,6 @@ const myPlayerName = getMyPlayerName();
           </div>
         )}
       </div>
-
 
       <h3>Moves History</h3>
       <div className={styles.movesList}>
