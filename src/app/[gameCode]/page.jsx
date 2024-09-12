@@ -50,7 +50,6 @@ const GameplayPage = ({ params }) => {
   const [moves, setMoves] = useState([]);
   const [secondToLastPlayerUID, setSecondToLastPlayerUID] = useState(null);
   const [timeLeft, setTimeLeft] = useState(25); 
-  // const [timeLeft2, setTimeLeft2] = useState(15); 
 
   useEffect(() => {
     if (gameData?.currentTurn === user?.uid && (roundInProgress == true && allPlayersRolled == true ) && gameData?.challengeStatus === false  ) {
@@ -113,32 +112,6 @@ const GameplayPage = ({ params }) => {
     }
   };
   
-  // believe disbelieve timer--------------
-
-  // useEffect(() => {
-  //   let timer;
-  //   if (gameData?.challengeStatus === true) {
-  //     setTimeLeft2(15); 
-  
-  //     timer = setInterval(() => {
-  //       setTimeLeft2(prevTime => {
-  //         if (prevTime > 1) {
-  //           return prevTime - 1;
-  //         } else {
-  //           clearInterval(timer); 
-  //           if (user?.uid === secondToLastPlayerUID) {
-  //             handleChallenge(true); 
-  //           } else {
-  //             handleChallenge(false);
-  //           }
-  //           return 0;
-  //         }
-  //       });
-  //     }, 1000);
-  //   }
-  
-  //   return () => clearInterval(timer);
-  // }, [gameData?.challengeStatus, secondToLastPlayerUID, user?.uid]);
 
   useEffect(() => {
     if (!gameCode) return;
@@ -304,10 +277,17 @@ const myPlayerName = getMyPlayerName();
         for (let i = 0; i < playerDiceCount; i++) {
           rollResults.push(rollDice());
         }
-  
+
+        // if all symbols are the same
+        const allEqual = rollResults.every(symbol => symbol === rollResults[0]);
+        let newDiceCount = playerDiceCount;
+        if (allEqual && rollResults.length >= 5) {
+          newDiceCount += 1; 
+        }
         // Update the player's roll results and their roll status :D
         update(ref(db, `games/${gameCode}/players/${user.uid}`), {
           rollResults,
+          dice: newDiceCount, 
           hasRolled: true
         }).then(() => {
           // check if all players have rolled
@@ -593,7 +573,6 @@ const myPlayerName = getMyPlayerName();
         <p>Actual Total Dice value: {actualTotalDice}</p>
         <p>Actual Total Dice value: {translateNumberToSymbol(actualTotalDice)}</p>
         <p>Tiempo restante: <b style={{ color: timeLeft <= 7 ? 'red' : 'black' }}>{timeLeft}</b></p>
-        {/* <p>Tiempo restante2: <b style={{ color: timeLeft2 <= 7 ? 'red' : 'black' }}>{timeLeft2}</b></p> */}
         <p>Total Dice of All Players  <b>{totalPlayerDice}</b> </p> 
         <p>round guess total <b>{roundGuessTotal}</b></p>
         <p>round guess total <b>{translateNumberToSymbol(roundGuessTotal)}</b></p>
