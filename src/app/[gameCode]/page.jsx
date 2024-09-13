@@ -54,7 +54,7 @@ const GameplayPage = ({ params }) => {
       const timer = setTimeout(() => {
         const autoGuessTotal = roundGuessTotal + 1;
         handleAutoGuessSubmit(autoGuessTotal);
-      }, 25000); 
+      }, gameData?.players[user.uid].dice === 0 ? 300 : 25000); 
   
       return () => clearTimeout(timer); 
     }
@@ -246,18 +246,79 @@ const getMyPlayerName = () => {
 
 const myPlayerName = getMyPlayerName();
 
-  const startFirstTurn = (players) => {
-    const activePlayers = Object.keys(players).filter(uid => players[uid].dice > 0);
-    if (activePlayers.length > 0) {
-      const initialTurn = activePlayers[0];
-      const updates = {
-        currentTurn: initialTurn,
-        roundInProgress: true, // Establece en true solo cuando todos los jugadores hayan lanzado dados ---
-      };
+  // const startFirstTurn = (players) => {
+  //   const activePlayers = Object.keys(players).filter(uid => players[uid].dice > 0);
+  //   if (activePlayers.length > 0) {
+  //     const initialTurn = activePlayers[0];
+  //     const updates = {
+  //       currentTurn: initialTurn,
+  //       roundInProgress: true, // Establece en true solo cuando todos los jugadores hayan lanzado dados ---
+  //     };
   
-      update(ref(db, `games/${gameCode}`), updates);
+  //     update(ref(db, `games/${gameCode}`), updates);
+  //   }
+  // };
+
+  // const startFirstTurn = (players) => {
+  //   // Filtra los jugadores activos
+  //   const activePlayers = Object.keys(players).filter(uid => players[uid].dice > 0);
+    
+  //   if (activePlayers.length > 0) {
+  //     const gameRef = ref(db, `games/${gameCode}`);
+      
+  //     // Obtén los perdedores de la ronda anterior
+  //     onValue(ref(db, `games/${gameCode}/losersFromLastRound`), (snapshot) => {
+  //       const losers = snapshot.val() || [];
+        
+  //       // Filtra los perdedores que siguen activos
+  //       const activeLosers = losers.filter(uid => players[uid].dice > 0);
+        
+  //       // Si hay perdedores activos, elige el primero de ellos
+  //       const initialTurn = activeLosers.length > 0 ? activeLosers[0] : activePlayers[0];
+        
+  //       const updates = {
+  //         currentTurn: initialTurn,
+  //         roundInProgress: true,
+  //       };
+  
+  //       update(gameRef, updates);
+  //     });
+  //   }
+  // };
+
+  const startFirstTurn = (players) => {
+    // Filtra los jugadores activos
+    const activePlayers = Object.keys(players).filter(uid => players[uid]?.dice > 0);
+    
+    if (activePlayers.length > 0) {
+      const gameRef = ref(db, `games/${gameCode}`);
+      
+      // Obtén los perdedores de la ronda anterior
+      onValue(ref(db, `games/${gameCode}/losersFromLastRound`), (snapshot) => {
+        const losers = snapshot.val() || [];
+        
+        // Filtra los perdedores que siguen activos
+        const activeLosers = losers.filter(uid => players[uid] && players[uid].dice > 0);
+        
+        // Si hay perdedores activos, elige el primero de ellos, si no, elige otro jugador activo
+        const initialTurn = activeLosers.length > 0 ? activeLosers[0] : activePlayers[0];
+        
+        const updates = {
+          currentTurn: initialTurn,
+          roundInProgress: true,
+        };
+  
+        // Actualiza los datos del juego
+        update(gameRef, updates);
+      });
+    } else {
+      console.log('No hay jugadores activos con dados.');
     }
   };
+  
+
+  
+
   
   
 
@@ -394,6 +455,7 @@ const myPlayerName = getMyPlayerName();
   const endRound = (challenges) => {
     const updates = {};
     let resultsMessage = "Resultados de la ronda anterior:\n";
+    let losers = []; // Lista de perdedores
 
     Object.entries(gameData.players).forEach(([uid, player]) => {
       let messagePart = `${player.name} `;
@@ -402,16 +464,20 @@ const myPlayerName = getMyPlayerName();
         if (actualTotalDice > roundGuessTotal) {
           updates[`players/${uid}/dice`] = player.dice - 1;
           messagePart += `No creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y si había, habían: ${translateNumberToSymbol(actualTotalDice)} perdió un dado.`;
+          losers.push(uid); 
         } else {
           messagePart += `No creyó que hubiese mas de ${translateNumberToSymbol(roundGuessTotal)} y no había, habían: ${translateNumberToSymbol(actualTotalDice)} mantiene sus dados. `;
+          losers = losers.filter(loserUid => loserUid !== uid);
         }
         // believe
       } else if (challenges[uid] === true) {
         if (actualTotalDice < roundGuessTotal) {
           updates[`players/${uid}/dice`] = player.dice - 1;
           messagePart += `Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero no, habían ${translateNumberToSymbol(actualTotalDice)} pierde un dado.`;
+          losers.push(uid); 
         } else {
           messagePart += `Creyó que aún había más que ${translateNumberToSymbol(roundGuessTotal)}, y si, como habían ${translateNumberToSymbol(actualTotalDice)} mantiene sus dados.`;
+          losers = losers.filter(loserUid => loserUid !== uid);  
         }
       }
       messagePart += "\n";
@@ -420,6 +486,9 @@ const myPlayerName = getMyPlayerName();
       updates[`players/${uid}/rollResult`] = null;
     });
 
+    updates['losersFromLastRound'] = losers; 
+
+    
     Object.entries(gameData.players).forEach(([uid, player]) => {
       if (player.dice <= 0) {
         // Elimina al jugador si tiene 0 dados
@@ -440,6 +509,8 @@ const myPlayerName = getMyPlayerName();
     updates['playersChallenges'] = {};
     updates['currentTurn'] = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0)[0];
     updates['challengeStatus'] = false; // Cambia challengeStatus a false
+
+    updates['losersFromLastRound'] = losers;
 
       // Restablece el valor en la base de datos
     update(ref(db, `games/${gameCode}`), { secondToLastPlayerUID: null });
@@ -489,14 +560,41 @@ const myPlayerName = getMyPlayerName();
     return total;
   };
 
+  // const getNextTurn = () => {
+  //   const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
+  //   if (activePlayers.length === 0) {
+  //     return null; 
+  //   }
+  //   const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
+  //   return activePlayers[(currentTurnIndex + 1) % activePlayers.length];
+  // };
+
   const getNextTurn = () => {
     const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
+    
+    // If there are no active players, return null
     if (activePlayers.length === 0) {
-      return null; 
+        return null; 
     }
+
+    // Get the index of the current player
     const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
-    return activePlayers[(currentTurnIndex + 1) % activePlayers.length];
-  };
+
+    // Start looking for the next player from the current index
+    let nextTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
+
+    // Loop until we find a player with dice
+    while (gameData.players[activePlayers[nextTurnIndex]].dice <= 0) {
+        nextTurnIndex = (nextTurnIndex + 1) % activePlayers.length;
+
+        // If we looped through all players without finding one, return null
+        if (nextTurnIndex === currentTurnIndex) {
+            return null; // All players have zero dice
+        }
+    }
+
+    return activePlayers[nextTurnIndex]; // Return the next player with dice
+};
 
   const isPlayerTurn = () => {
     if (gameData && gameData.currentTurn && user && user.uid) {
