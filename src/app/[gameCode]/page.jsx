@@ -48,6 +48,7 @@ const GameplayPage = ({ params }) => {
   const [moves, setMoves] = useState([]);
   const [secondToLastPlayerUID, setSecondToLastPlayerUID] = useState(null);
   const [timeLeft, setTimeLeft] = useState(25); 
+  const [PlayersSymbolSum, setPlayersSymbolSum] = useState('');
 
   useEffect(() => {
     if (gameData?.currentTurn === user?.uid && (roundInProgress == true && allPlayersRolled == true ) && gameData?.challengeStatus === false  ) {
@@ -86,13 +87,15 @@ const GameplayPage = ({ params }) => {
 
       const updates = {
         roundGuessTotal: autoGuessTotal,
-        previousPlayerGuess: playerGuess,
-        previousPlayerGuessQuantity: playerGuessQuantity,
+        // previousPlayerGuess: playerGuess,
+        // previousPlayerGuessQuantity: playerGuessQuantity,
+        previousPlayerGuess: translateNumberToSymbol(roundGuessTotal +1).split(' ')[1],
+        previousPlayerGuessQuantity: translateNumberToSymbol(roundGuessTotal +1).split(' ')[0] ,
         currentTurn: getNextTurn()
       };
 
       setPreviousPlayerGuess(playerGuess);
-      setPreviousPlayerGuessQuantity(playerGuessQuantity);
+      // setPreviousPlayerGuessQuantity(playerGuessQuantity);
       setRoundGuessTotal(autoGuessTotal);
       update(ref(db, `games/${gameCode}`), { roundGuessTotal: autoGuessTotal, currentTurn: getNextTurn() });
       setPlayerGuess('');
@@ -126,7 +129,7 @@ const GameplayPage = ({ params }) => {
         setTotalPlayerDice(calculateTotalPlayerDice(data.players));
         setAllPlayersRolled(data.allPlayersRolled || false); 
         setPlayersChallenges(data.playersChallenges || {});
-
+        setPlayersSymbolSum(data.symbolsSume)
           if (data.roundResultsMessage) {
             setRoundResultsMessage(data.roundResultsMessage);
           }
@@ -469,32 +472,55 @@ const myPlayerName = getMyPlayerName();
       setShowGif(false)
   };
 
+
+
+
+
+
+
+
+
+
   
   const endRound = (challenges) => {
     const updates = {};
     let resultsMessage = "Resultados de la ronda anterior:\n";
     let losers = []; // Lista de perdedores
+    let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1]
+    let symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[0]
+    let realSymbolNumberGuess = PlayersSymbolSum[symbolGuess]
 
+    console.log("symbolGuess", symbolGuess)
+    console.log("PlayersSymbolSum[symbolGuess]", PlayersSymbolSum[symbolGuess])
     Object.entries(gameData.players).forEach(([uid, player]) => {
       let messagePart = `${player.name} `;
       // disbelieve
       if (challenges[uid] === false) {
-        if (actualTotalDice > roundGuessTotal) {
+        // if (actualTotalDice > roundGuessTotal) {
+        if (PlayersSymbolSum[symbolGuess] > symbolNumberGuess) {
           updates[`players/${uid}/dice`] = player.dice - 1;
-          messagePart += `No creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y si había, habían: ${translateNumberToSymbol(actualTotalDice)} perdió un dado.`;
+          messagePart += `No creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y si había, habían: ${realSymbolNumberGuess} ${ symbolGuess} perdió un dado.`;
           losers.push(uid); 
-        } else {
-          messagePart += `No creyó que hubiese mas de ${translateNumberToSymbol(roundGuessTotal)} y no había, habían: ${translateNumberToSymbol(actualTotalDice)} mantiene sus dados. `;
+        } if (PlayersSymbolSum[symbolGuess] = symbolNumberGuess) {
+          messagePart += `No creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y como habían: ${realSymbolNumberGuess} ${ symbolGuess} mantiene sus dados.`;
+          losers = losers.filter(loserUid => loserUid !== uid);
+        }else {
+          messagePart += `No creyó que hubiese mas de ${translateNumberToSymbol(roundGuessTotal)} y no había, habían: ${realSymbolNumberGuess} ${ symbolGuess}  mantiene sus dados. `;
           losers = losers.filter(loserUid => loserUid !== uid);
         }
         // believe
       } else if (challenges[uid] === true) {
-        if (actualTotalDice < roundGuessTotal) {
+        // if (actualTotalDice < roundGuessTotal) {
+        if (PlayersSymbolSum[symbolGuess]  < symbolNumberGuess) {
           updates[`players/${uid}/dice`] = player.dice - 1;
-          messagePart += `Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero no, habían ${translateNumberToSymbol(actualTotalDice)} pierde un dado.`;
+          messagePart += `Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero no, habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
+          losers.push(uid); 
+        }if (PlayersSymbolSum[symbolGuess]  = symbolNumberGuess) {
+          updates[`players/${uid}/dice`] = player.dice - 1;
+          messagePart += `Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
           losers.push(uid); 
         } else {
-          messagePart += `Creyó que aún había más que ${translateNumberToSymbol(roundGuessTotal)}, y si, como habían ${translateNumberToSymbol(actualTotalDice)} mantiene sus dados.`;
+          messagePart += `Creyó que aún había más que ${translateNumberToSymbol(roundGuessTotal)}, y si, como habían ${realSymbolNumberGuess} ${ symbolGuess}  mantiene sus dados.`;
           losers = losers.filter(loserUid => loserUid !== uid);  
         }
       }
@@ -527,8 +553,11 @@ const myPlayerName = getMyPlayerName();
     updates['playersChallenges'] = {};
     updates['currentTurn'] = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0)[0];
     updates['challengeStatus'] = false; // Cambia challengeStatus a false
+    updates['roundGuessTotal'] = 0;  
 
-    updates['losersFromLastRound'] = losers;
+
+
+    updates['symbolsSume'] = [];
 
       // Restablece el valor en la base de datos
     update(ref(db, `games/${gameCode}`), { secondToLastPlayerUID: null });
