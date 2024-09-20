@@ -49,6 +49,12 @@ const GameplayPage = ({ params }) => {
   const [secondToLastPlayerUID, setSecondToLastPlayerUID] = useState(null);
   const [timeLeft, setTimeLeft] = useState(25); 
   const [PlayersSymbolSum, setPlayersSymbolSum] = useState('');
+  const [PlayersSymbolSum2, setPlayersSymbolSum2] = useState('');
+  const [devilDiceState, setDevilDiceState] = useState('');
+  const [devilFinished, setDevilFinished] = useState(false);
+  const [devilDiceRollResult, setDevilDiceRollResult] = useState('');
+  const [devilSaved, setDevilSaved] = useState(false);
+  const [allChallengedListen, setAllChallengedListen] = useState(false);
 
   useEffect(() => {
     if (gameData?.currentTurn === user?.uid && (roundInProgress == true && allPlayersRolled == true ) && gameData?.challengeStatus === false  ) {
@@ -130,6 +136,7 @@ const GameplayPage = ({ params }) => {
         setAllPlayersRolled(data.allPlayersRolled || false); 
         setPlayersChallenges(data.playersChallenges || {});
         setPlayersSymbolSum(data.symbolsSume)
+        // setPlayersSymbolSum2(data.symbolsSume)
           if (data.roundResultsMessage) {
             setRoundResultsMessage(data.roundResultsMessage);
           }
@@ -153,9 +160,35 @@ const GameplayPage = ({ params }) => {
 
       }
     });
-  
+    console.log("PlayersSymbolSum useffect 1", PlayersSymbolSum)
     return () => unsubscribe();
   }, [gameCode]);
+
+  useEffect(() => {
+    if (!gameCode) return;
+  
+    const gameRef = ref(db, `games/${gameCode}/symbolsSume`);
+  
+    const unsubscribe = onValue(gameRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setPlayersSymbolSum(data);
+      }
+    });
+  console.log("PlayersSymbolSum useffect 2", PlayersSymbolSum)
+    return () => unsubscribe();
+  }, [gameCode, devilFinished]);
+
+  useEffect(() => {
+    if (!devilFinished) return; // Solo ejecuta si isEndRound es true
+
+    const timeoutId = setTimeout(() => {
+      endRound(playersChallenges);
+    }, 2000); // 2000 milisegundos = 2 segundos
+
+    return () => clearTimeout(timeoutId);
+
+  }, [ devilFinished]);
 
   useEffect(() => {
     if (!gameCode) return;
@@ -170,7 +203,7 @@ const GameplayPage = ({ params }) => {
     });
   
     return () => unsubscribe();
-  }, [gameCode]);
+  }, [gameCode, devilFinished]);
   
 
   useEffect(() => {
@@ -185,7 +218,18 @@ const GameplayPage = ({ params }) => {
     return () => unsubscribe();
   }, [gameCode]);
   
+  useEffect(() => {
+    const gameRef = ref(db, `games/${gameCode}/allPlayersChallenged`);
+    const unsubscribe = onValue(gameRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data !== null) {
+        setAllChallengedListen(data); 
+        console.log("allPlayersChallenged changed:", data);
+      }
+    });
 
+    return () => unsubscribe();
+  }, [gameCode]); 
   
   const logPlayerMove = (uid, guess, believe) => {
     const movesRef = ref(db, `games/${gameCode}/moves`);
@@ -249,45 +293,6 @@ const getMyPlayerName = () => {
 
 const myPlayerName = getMyPlayerName();
 
-  // const startFirstTurn = (players) => {
-  //   const activePlayers = Object.keys(players).filter(uid => players[uid].dice > 0);
-  //   if (activePlayers.length > 0) {
-  //     const initialTurn = activePlayers[0];
-  //     const updates = {
-  //       currentTurn: initialTurn,
-  //       roundInProgress: true, // Establece en true solo cuando todos los jugadores hayan lanzado dados ---
-  //     };
-  
-  //     update(ref(db, `games/${gameCode}`), updates);
-  //   }
-  // };
-
-  // const startFirstTurn = (players) => {
-  //   // Filtra los jugadores activos
-  //   const activePlayers = Object.keys(players).filter(uid => players[uid].dice > 0);
-    
-  //   if (activePlayers.length > 0) {
-  //     const gameRef = ref(db, `games/${gameCode}`);
-      
-  //     // Obtén los perdedores de la ronda anterior
-  //     onValue(ref(db, `games/${gameCode}/losersFromLastRound`), (snapshot) => {
-  //       const losers = snapshot.val() || [];
-        
-  //       // Filtra los perdedores que siguen activos
-  //       const activeLosers = losers.filter(uid => players[uid].dice > 0);
-        
-  //       // Si hay perdedores activos, elige el primero de ellos
-  //       const initialTurn = activeLosers.length > 0 ? activeLosers[0] : activePlayers[0];
-        
-  //       const updates = {
-  //         currentTurn: initialTurn,
-  //         roundInProgress: true,
-  //       };
-  
-  //       update(gameRef, updates);
-  //     });
-  //   }
-  // };
 
   const startFirstTurn = (players) => {
     // Filtra los jugadores activos
@@ -320,10 +325,6 @@ const myPlayerName = getMyPlayerName();
   };
   
 
-  
-
-  
-  
 
   const handleRollDice = () => {
     if (gameData && gameData.players && gameData.players[user.uid]) {
@@ -450,7 +451,6 @@ const myPlayerName = getMyPlayerName();
     const newChallenges = { ...playersChallenges, [user.uid]: believe };
     setPlayersChallenges(newChallenges)
     // update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
-
   update(ref(db, `games/${gameCode}`), { 
     playersChallenges: newChallenges,
     challengeStatus: true 
@@ -462,26 +462,63 @@ const myPlayerName = getMyPlayerName();
         // si los jugadores activos hicieron su elección
         const allPlayersChallenged = activePlayers.every(uid => newChallenges[uid] !== undefined);
 
-        if (allPlayersChallenged) {
+        update(ref(db, `games/${gameCode}`), { allPlayersChallenged });
+
+        let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1]
+        let symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[0]
+
+        if (allPlayersChallenged && symbolNumberGuess - PlayersSymbolSum[symbolGuess] === 1) {
+          setDevilDiceState(true);
+      } else if (allPlayersChallenged) {
           endRound(newChallenges); 
           update(ref(db, `games/${gameCode}`), { 
-            challengeStatus: false 
-          })
-        }
+              challengeStatus: false 
+          });
+      }
+
       });
       setShowGif(false)
   };
 
 
+  const devilDice = () => {
+    const updates = {};
+    let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1]
+    let symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[0]
+    let realSymbolNumberGuess = PlayersSymbolSum[symbolGuess]
 
+    let rollDevilDice = rollDice()
+    setDevilDiceRollResult(rollDevilDice)
 
+    const challenges =  playersChallenges[user?.uid] 
 
+    Object.entries(gameData.players).forEach(([uid, player]) => {
 
+        // believe
+       if (challenges === true) {
+        // if (actualTotalDice < roundGuessTotal) {
+        if (PlayersSymbolSum[symbolGuess]  < symbolNumberGuess && rollDevilDice == symbolGuess ) {
+          updates[`symbolsSume/${symbolGuess}`] = PlayersSymbolSum[symbolGuess] + 1;
+          updates['actualTotalDice'] = actualTotalDice + 6;
+          setDevilSaved(true)
+          console.log("devil dice te salvó")
+        } else {
+          console.log("nada ocurre, el dado maldito no te salvó")
+        }
+      }
+    });
+    // setDevilDiceState(false)
+    
+setDevilFinished(true)
 
+    update(ref(db, `games/${gameCode}`), updates)
+      .then(() => {
 
+      });
 
-
+  };
   
+
   const endRound = (challenges) => {
     const updates = {};
     let resultsMessage = "Resultados de la ronda anterior:\n";
@@ -489,38 +526,61 @@ const myPlayerName = getMyPlayerName();
     let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1]
     let symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[0]
     let realSymbolNumberGuess = PlayersSymbolSum[symbolGuess]
+    let symbolSumPreDevil = devilSaved == true ? PlayersSymbolSum2[symbolGuess] - 1 : PlayersSymbolSum2[symbolGuess] // symbolSume value antes de activar dado maldito 
 
-    console.log("symbolGuess", symbolGuess)
-    console.log("PlayersSymbolSum[symbolGuess]", PlayersSymbolSum[symbolGuess])
+    let PlayersSymbolSumNum = Number(PlayersSymbolSum[symbolGuess])
+
     Object.entries(gameData.players).forEach(([uid, player]) => {
       let messagePart = `${player.name} `;
       // disbelieve
       if (challenges[uid] === false) {
         // if (actualTotalDice > roundGuessTotal) {
-        if (PlayersSymbolSum[symbolGuess] > symbolNumberGuess) {
+        if (PlayersSymbolSumNum> symbolNumberGuess) {
           updates[`players/${uid}/dice`] = player.dice - 1;
-          messagePart += `No creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y si había, habían: ${realSymbolNumberGuess} ${ symbolGuess} perdió un dado.`;
+          messagePart += `*1* No creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y si había, habían: ${realSymbolNumberGuess} ${ symbolGuess} perdió un dado.`;
           losers.push(uid); 
-        } if (PlayersSymbolSum[symbolGuess] = symbolNumberGuess) {
-          messagePart += `No creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y como habían: ${realSymbolNumberGuess} ${ symbolGuess} mantiene sus dados.`;
+        }
+        else if (devilFinished === true && realSymbolNumberGuess > symbolSumPreDevil ) {
+          updates[`players/${uid}/dice`] = player.dice - 1;
+          messagePart += `*2* believe ${(symbolSumPreDevil)} y ${(realSymbolNumberGuess)} pierde un dado devildice en contra`;
+          losers.push(uid); 
+        } 
+        else if (devilFinished === true && realSymbolNumberGuess == symbolSumPreDevil ) {
+          messagePart += `*3* disbelieve ${(symbolSumPreDevil)} y ${(realSymbolNumberGuess)} mantiene dado, devildice a favor`;
           losers = losers.filter(loserUid => loserUid !== uid);
-        }else {
-          messagePart += `No creyó que hubiese mas de ${translateNumberToSymbol(roundGuessTotal)} y no había, habían: ${realSymbolNumberGuess} ${ symbolGuess}  mantiene sus dados. `;
+        } 
+        else if (PlayersSymbolSumNum == symbolNumberGuess) {
+          messagePart += `*4*  creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y como habían: ${realSymbolNumberGuess} ${ symbolGuess} mantiene sus dados.`;
+          losers = losers.filter(loserUid => loserUid !== uid);
+        }
+        else {
+          messagePart += `*5* No creyó que hubiese mas de ${translateNumberToSymbol(roundGuessTotal)} y no había, habían: ${realSymbolNumberGuess} ${ symbolGuess}  mantiene sus dados. `;
           losers = losers.filter(loserUid => loserUid !== uid);
         }
         // believe
       } else if (challenges[uid] === true) {
         // if (actualTotalDice < roundGuessTotal) {
-        if (PlayersSymbolSum[symbolGuess]  < symbolNumberGuess) {
+        if (PlayersSymbolSumNum < symbolNumberGuess) {
           updates[`players/${uid}/dice`] = player.dice - 1;
-          messagePart += `Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero no, habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
+          messagePart += `*6* Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero no, habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
           losers.push(uid); 
-        }if (PlayersSymbolSum[symbolGuess]  = symbolNumberGuess) {
+        }
+        else if (devilFinished === true && realSymbolNumberGuess > symbolSumPreDevil ) {
+          messagePart += `*7* believe ${(symbolSumPreDevil)} y ${(realSymbolNumberGuess)} mandiene dado, devildice a favor`;
+          losers = losers.filter(loserUid => loserUid !== uid);  
+        } 
+        else if (devilFinished === true && realSymbolNumberGuess == symbolSumPreDevil ) {
           updates[`players/${uid}/dice`] = player.dice - 1;
-          messagePart += `Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
+          messagePart += `*8* believe ${(symbolSumPreDevil)} y ${(realSymbolNumberGuess)} pierde dado, devildice en contra`;
           losers.push(uid); 
-        } else {
-          messagePart += `Creyó que aún había más que ${translateNumberToSymbol(roundGuessTotal)}, y si, como habían ${realSymbolNumberGuess} ${ symbolGuess}  mantiene sus dados.`;
+        } 
+        else if (realSymbolNumberGuess  == symbolNumberGuess) {
+          updates[`players/${uid}/dice`] = player.dice - 1;
+          messagePart += `*9*Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
+          losers.push(uid); 
+        } 
+        else {
+          messagePart += `*10* Creyó que aún había más que ${translateNumberToSymbol(roundGuessTotal)}, y si, como habían ${realSymbolNumberGuess} ${ symbolGuess}  mantiene sus dados.`;
           losers = losers.filter(loserUid => loserUid !== uid);  
         }
       }
@@ -555,8 +615,6 @@ const myPlayerName = getMyPlayerName();
     updates['challengeStatus'] = false; // Cambia challengeStatus a false
     updates['roundGuessTotal'] = 0;  
 
-
-
     updates['symbolsSume'] = [];
 
       // Restablece el valor en la base de datos
@@ -569,16 +627,24 @@ const myPlayerName = getMyPlayerName();
     }
     updates['allPlayersRolled'] = false;
     updates['roundInProgress'] = false;
+    updates['allPlayersChallenged'] = false;
 
     updates['roundResultsMessage'] = resultsMessage;
 
     // Actualiza el mensaje de resultados de la ronda
     setRoundResultsMessage(resultsMessage);
+    setDevilDiceState('')
+    setDevilFinished(false)
+    setDevilSaved(false)
 
-    update(ref(db, `games/${gameCode}`), updates)
-      .then(() => {
-        checkForWinner(gameData.players, gameData.currentRound + 1);
-      });
+
+      setTimeout(() => {
+          update(ref(db, `games/${gameCode}`), updates)
+          .then(() => {
+            checkForWinner(gameData.players, gameData.currentRound + 1);
+          });
+      }, 4000); 
+
 };
 
   const calculateTotalPlayerDice = (players) => {
@@ -607,39 +673,24 @@ const myPlayerName = getMyPlayerName();
     return total;
   };
 
-  // const getNextTurn = () => {
-  //   const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
-  //   if (activePlayers.length === 0) {
-  //     return null; 
-  //   }
-  //   const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
-  //   return activePlayers[(currentTurnIndex + 1) % activePlayers.length];
-  // };
 
   const getNextTurn = () => {
     const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
     
-    // If there are no active players, return null
     if (activePlayers.length === 0) {
         return null; 
     }
 
-    // Get the index of the current player
     const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
-
-    // Start looking for the next player from the current index
     let nextTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
 
-    // Loop until we find a player with dice
     while (gameData.players[activePlayers[nextTurnIndex]].dice <= 0) {
         nextTurnIndex = (nextTurnIndex + 1) % activePlayers.length;
 
-        // If we looped through all players without finding one, return null
         if (nextTurnIndex === currentTurnIndex) {
-            return null; // All players have zero dice
+            return null; 
         }
     }
-
     return activePlayers[nextTurnIndex]; // Return the next player with dice
 };
 
@@ -745,7 +796,42 @@ const myPlayerName = getMyPlayerName();
               )}
         </div>
 
-      {gameData?.players[user.uid].dice === 0 ? (
+        <div>
+            {devilDiceState == true? (
+              <>
+              <p>devil roll result: {devilDiceRollResult}</p>
+                <button onClick={devilDice}>devil dice</button>                      
+              </>) :
+             (<>
+             no devil dice
+             </>)}
+              <br ></br>
+        </div>
+
+        { allChallengedListen === true ? (
+              <>
+                {Object?.entries(gameData?.players).map(([uid, playerData]) => (
+                  <div key={uid}>
+                    <p>{playerData.name}:</p> 
+                    <b>Roll:</b>
+                    <p>
+                      {/* Verifica si rollResults no es undefined o null */}
+                      {playerData?.rollResults ? (
+                        Object.entries(playerData.rollResults).map(([key, value], index) => (
+                          <b key={index}>{value}, </b>
+                        ))
+                      ) : (
+                        <span>No roll results</span> 
+                      )}
+                    </p>    
+                  </div>
+                ))}        
+              </>) :
+             (<>
+                no dice challenged
+             </>)}
+
+      {gameData?.players[user?.uid].dice === 0 ? (
         <div className={styles.lostText}>
           {translations[language].lostMessage}
         </div>
