@@ -550,6 +550,7 @@ setDevilFinished(true)
           losers = losers.filter(loserUid => loserUid !== uid);
         } 
         else if (PlayersSymbolSumNum == symbolNumberGuess) {
+          updates[`players/${uid}/dice`] = player.dice - 1;
           messagePart += `*4*  creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y como habían: ${realSymbolNumberGuess} ${ symbolGuess} mantiene sus dados.`;
           losers = losers.filter(loserUid => loserUid !== uid);
         }
@@ -575,7 +576,7 @@ setDevilFinished(true)
           losers.push(uid); 
         } 
         else if (realSymbolNumberGuess  == symbolNumberGuess) {
-          updates[`players/${uid}/dice`] = player.dice - 1;
+          // updates[`players/${uid}/dice`] = player.dice - 1;
           messagePart += `*9*Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
           losers.push(uid); 
         } 
