@@ -56,6 +56,15 @@ const GameplayPage = ({ params }) => {
   const [devilSaved, setDevilSaved] = useState(false);
   const [allChallengedListen, setAllChallengedListen] = useState(false);
 
+
+
+  useEffect(() => {
+    if (secondToLastPlayerUID === user?.uid && gameData?.challengeStatus === true ){
+      // believe
+      handleChallenge(true)
+    }
+  }, [gameData?.challengeStatus,]); 
+
   useEffect(() => {
     if (gameData?.currentTurn === user?.uid && (roundInProgress == true && allPlayersRolled == true ) && gameData?.challengeStatus === false  ) {
       const timer = setTimeout(() => {
@@ -157,6 +166,9 @@ const GameplayPage = ({ params }) => {
         if (data.allPlayersRolled && !data.currentTurn) {
           startFirstTurn(data.players);
         }
+
+        setPlayerGuess(data.previousPlayerGuess ? data.previousPlayerGuess: '');
+        setPlayerGuessQuantity(data.previousPlayerGuessQuantity ? data.previousPlayerGuessQuantity : 1);
 
       }
     });
@@ -281,7 +293,7 @@ const getCurrentPlayerName = () => {
     const currentPlayer = gameData.players[gameData.currentTurn];
     return currentPlayer ? currentPlayer.name : "Unknown Player";
   }
-  return "Loading...";
+  return "";
 };
 
 const getMyPlayerName = () => {
@@ -765,7 +777,7 @@ setDevilFinished(true)
         <p>Total Dice of All Players  <b>{totalPlayerDice}</b> </p> 
         <p>round guess total <b>{roundGuessTotal}</b></p>
         <p>round guess total <b>{translateNumberToSymbol(roundGuessTotal)}</b></p>
-        <p>It's <b>{getCurrentPlayerName()}</b>'s turn</p>
+        <p>{gameData?.currentTurn && gameData?.players ? <p>It's <b>{getCurrentPlayerName()}</b>'s turn</p> : ""}</p>
 
         {error && <p style={{ color: 'red' }}>{error}</p>} 
 
@@ -882,8 +894,8 @@ setDevilFinished(true)
                 {!Object.keys(playersChallenges).length ? (
                   <button 
                     onClick={() => handleChallenge(false)} 
-                    disabled={hasPlayerChosen(user.uid)} 
-                    style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                    disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
+                    style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
                   >
                     {translations[language].disbelieve}
                   </button>
@@ -894,8 +906,8 @@ setDevilFinished(true)
                       <>
                         <button 
                           onClick={() => handleChallenge(true)} 
-                          disabled={hasPlayerChosen(user.uid)} 
-                          style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                          disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
+                          style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
                         >
                           {translations[language].believe}
                         </button>
@@ -905,15 +917,15 @@ setDevilFinished(true)
                       <>
                       <button 
                         onClick={() => handleChallenge(true)} 
-                        disabled={hasPlayerChosen(user.uid)} 
-                        style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                        disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
+                        style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
                       >
                         {translations[language].believe}
                       </button>
                         <button 
                           onClick={() => handleChallenge(false)} 
-                          disabled={hasPlayerChosen(user.uid)} 
-                          style={{ opacity: hasPlayerChosen(user.uid) ? 0.5 : 1 }}
+                          disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
+                          style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
                         >
                           Disbelieve
                         </button>
@@ -930,6 +942,9 @@ setDevilFinished(true)
 
 
       <div className={styles.gameControls}>
+
+
+
 
           {previousPlayerGuess && (
             <p>Last move/dados mandados: <b>{previousPlayerGuessQuantity} {previousPlayerGuess}</b></p>
