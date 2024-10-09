@@ -21,6 +21,11 @@ const GameCodeInput = () => {
   const { language } = useContext(LanguageContext);
   const { user } = useAuth();
 
+  const minValueNumDice = 5; 
+  const maxValueNumDice = 7;
+  const minValueNumPlayers = 3; 
+  const maxValueNumPlayers = 8;
+
   const handleGenerateRandomCode = async () => {
     const randomCode = generateRandomCode();
     setGameCode(randomCode);
@@ -90,16 +95,51 @@ const GameCodeInput = () => {
           placeholder={translations[language].numPlayers}
           value={numPlayers}
           onChange={(e) => setNumPlayers(e.target.value)}
+          min={3}  
+          max={8} 
+          readOnly 
           disabled={isCreating}
         />
+      <button
+        onClick={() => setNumPlayers(prev => Math.max(minValueNumPlayers, prev - 1))}
+        disabled={numPlayers <= minValueNumPlayers}
+      >
+        -
+      </button>
+      <button
+        onClick={() => setNumPlayers(prev => Math.min(maxValueNumPlayers, prev + 1))}
+        disabled={numPlayers >= maxValueNumPlayers}
+      >
+        +
+      </button>
+
+
+
+
           <p>{translations[language].numDice}</p>
         <input
           type="number"
           placeholder={translations[language].numDice}
           value={numDice}
           onChange={(e) => setNumDice(e.target.value)}
+          min={5}  
+          max={7} 
+          readOnly 
           disabled={isCreating}
         />
+      <button
+        onClick={() => setNumDice(prev => Math.max(minValueNumDice, prev - 1))}
+        disabled={numDice <= minValueNumDice}
+      >
+        -
+      </button>
+      <button
+        onClick={() => setNumDice(prev => Math.min(maxValueNumDice, prev + 1))}
+        disabled={numDice >= maxValueNumDice}
+      >
+        +
+      </button>
+        
         {/* <input
           type="text"
           placeholder="code"
