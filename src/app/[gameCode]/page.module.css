@@ -1,5 +1,5 @@
 .pageContainer{
-
+    overflow-x: hidden;
     height: 100vh;
     width: 100%;
     background-color: rgba(128, 128, 128, 0.252);
@@ -20,50 +20,120 @@
     transform: scale(1.1); */
   }
 
-.gameStatistics{
-    padding-top: 10%;
-    width: 80%;
+
+.gameContainer{
+    display:flex;
+    flex-direction: column;
+    background-color: rgb(46, 46, 46);
+    height: 100%;
+    width: 100%;
+}
+
+
+.tableContainer{
+    height: 77%;
+    width: 100%;
+
+}
+
+.controlsContainer{
+    display:flex;
+    align-items: center;   
+    height: 23%;
+    width: 100%;
+    background-color: black;
+}
+
+.diceRoll{
     margin-left: auto;
     margin-right: auto;
-    z-index:1;
+    align-self: center; 
 }
 
-.gameStatistics button{
-    margin-top: 1em;
-    font-size:1.2em;
-    padding: 0.5em;
-    color:#fff;
-    background:rgba(0, 0, 0, 0.688);
-    border-radius: 0.5em;
+.diceRoll button{
+    width:  min(45vw, 45em);
+    padding:min(1vw, 1em);
+}
+
+.gameControls{
+    overflow-x: hidden;
+    height:100%;
+    display: flex;
+    align-items: center;   
+}
+
+
+.controls{
+    overflow-x: hidden;
+    align-self: center; 
+    height:100%;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    /* background-color:red; */
+}
+
+.controlsSymbols{
+    overflow-x: hidden;
+    /* background-color: chartreuse; */
+    width: 60%;
+    /* display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 1px;
+    align-items: center;
+justify-items: center; */
+}
+
+
+.symbolContainer{
+    margin-left: auto;
+    /* margin-right: auto; */
+    /* background-color: pink; */
+    width:fit-content;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 1px;
+    align-items: center;
+    justify-items: center;
+}
+
+
+.symbolContainer button{
+    font-size: min(6vw, 6em);
+    /* padding: min(3vw, 3em); */
+    padding: 0;
+    margin: min(0.6vw, 0.6em);
+    border-radius:min(2vw, 2em);
     border: none; 
-}
-
-.gameStatistics h1{
-    font-size:1.7em;
-}
-
-.gameStatistics p{
-    font-size:1.2em;
+    width:  min(14vw, 14em);
+    height:  min(14vw, 14em);
+    box-sizing: border-box;
 }
 
 
 .gameControls{
-    margin-top:2.5%;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
+    /* margin-top:2.5%;
+    width: 80%; */
+    /* margin-left: auto;
+    margin-right: auto; */
     z-index:1;
 }
 
 .gameControls button{
-    margin:0.1em;
+    border: 1px solid #fff ; 
+    /* margin:0.1em;
     margin-top: 1em;
     font-size:1.2em;
-    padding: 0.5em;
+    padding: 0.5em; */
     color:#fff;
     background:rgba(0, 0, 0, 0.688);
-    border-radius: 0.5em;
-    border: none; 
+    /* border-radius: 0.5em; */
+    /* border: none;  */
 }
 
 .gameControls p{
@@ -71,20 +141,98 @@
 }
 
 .moreLessButtons{
-
+    /* background-color: blue; */
+    margin-left:min(10vw, 10em);
+    margin-right:min(7vw, 7em);
+    color:#fff;
+    width:fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;   
+    justify-content:center;
+    
 }
 
 .moreLessButtons span{
-    font-size:1.5em;
-    margin:0.4em
+    font-size:min(4vw, 4em);
+    margin-left: auto;
+    margin-right: auto;
+    margin-top:min(1.2vw, 1.2em);
+    margin-bottom:min(1.2vw, 1.2em);
+    /* font-size:1.5em;
+    margin:0.4em */
 }
 
-.moreLessButtons button{
-    height: 2em;
-    width: 2em;
-    padding:0.5em;
-    font-weight:700;
+.moreLessButtons span{
+
 }
+
+
+
+
+.moreLessButtons button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    width:  min(8vw, 8em);
+    height:  min(8vw, 8em);
+    font-size:min(7vw, 7em);
+    border: none; 
+    border: 1px solid #fff ; 
+}
+
+
+.controlsSendButton{
+    /* background-color: aqua; */
+    width:fit-content;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+
+}
+
+
+
+.controlsSendButton button{
+    /* background-color: aqua; */
+    width: min(20vw, 20em);
+    height: min(20vw, 20em);
+    border-radius:100%;
+    border: 1px solid #fff ; 
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .diceContainer{
     width: 7em;
@@ -96,13 +244,13 @@
     height: 100%;
 }
 
-.myInfo {
+/* .myInfo {
     border: 2px solid #333;
     background-color: #f5f5f566;
   }
-  
+   */
 
-  .movesList {
+  /* .movesList {
     width: 60%; 
     max-height: 9em; 
     overflow-y: auto; 
@@ -113,7 +261,7 @@
   .movesContent {
     max-height: inherit;
     overflow-y: inherit;
-  }
+  } */
 
   .lostText{
     color:red;
@@ -128,14 +276,14 @@
 
     .gameStatistics{
         padding-top: 0%;
-        width: 80%;
+        /* width: 80%; */
         margin-left: auto;
         margin-right: auto;
         z-index:1;
     }
     .gameControls{
         margin-top:0%;
-        width: 80%;
+        /* width: 80%; */
         margin-left: auto;
         margin-right: auto;
         z-index:1;

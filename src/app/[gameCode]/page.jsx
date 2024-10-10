@@ -727,6 +727,7 @@ setDevilFinished(true)
   const translations = {
     es: {
       guess: 'Mandar',
+      send: 'Enviar',
       roll: 'Tirar Dados',
       believe: 'Creo',
       disbelieve: 'No creo',
@@ -736,6 +737,7 @@ setDevilFinished(true)
     },
     en: {
       guess: 'Guess',
+      send: 'Send',
       roll: 'Roll Dice',
       believe: 'Believe',
       disbelieve: 'Disbelieve',
@@ -763,13 +765,102 @@ setDevilFinished(true)
   return (
     <div className={styles.pageContainer}>
       <div className={styles.background}></div>
+        <div className={styles.gameContainer}>
 
-        <div className={styles.myInfo}>
-          <h2>My username: <b>{myPlayerName}</b></h2>
+
+          <div className={styles.tableContainer}>
+
+
+
+
+
+          </div>
+
+          <div className={styles.controlsContainer}>
+
+
+      {gameData?.players[user?.uid].dice === 0 ? (
+        <div className={styles.lostText}>
+          {translations[language].lostMessage}
+        </div>
+        ) : (
+        <div>
+          <div className={styles.gameControls}>
+            {gameOver && winner ? (
+                <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
+              ) : (
+                <>
+                  {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
+                    <div>
+                      <button onClick={handleRollDice}>{translations[language].roll}</button>
+                    </div>
+
+                  ) : (
+                    isPlayerTurn() && !Object.keys(playersChallenges).length ? (
+                      <div className={styles.controls}>
+                        <div className={styles.controlsSymbols}>
+                          <div className={styles.symbolContainer}>
+                            {SYMBOLS.map(symbol => (
+                              <button key={symbol} onClick={() => handleGuessChange(symbol)}>
+                                {symbol}
+                              </button>
+                            ))}                        
+                          </div>
+
+                        </div>
+                        <div className={styles.moreLessButtons}>
+                          <button className={styles.moreButton} onClick={() => handleQuantityChange(1)}>+</button>                       
+                          <span>x{playerGuessQuantity}</span>
+                          <button className={styles.lessButton} onClick={() => handleQuantityChange(-1)}>-</button>
+                        </div>
+                        <div className={styles.controlsSendButton}>
+                          <button onClick={handleGuessSubmit}>
+                            {translations[language].send} {playerGuessQuantity} {playerGuess}
+                          </button>
+                        </div>
+                      </div>
+                    ) : ( 
+
+                      <>
+                            <p>Waiting for your turn...</p>
+                      </>
+                
+                    ) 
+                  )}
+                </>
+              )}
+
+          </div>
+        </div>
+        )}
+
+
+
+            {playerCount == gameData?.maxPlayers && !hasRolled && (
+              <div className={styles.diceRoll}>
+                <button onClick={handleRollDice}>{translations[language].roll}</button>
+              </div>
+              )}
+
+
+          </div>
+
+
+
+
+
+
+
+
         </div>
 
+
+        {/* <div className={styles.myInfo}>
+          <h2>My username: <b>{myPlayerName}</b></h2>
+        </div> */}
+
       <div className={styles.gameStatistics}>
-        <h1>Room code <b>{gameCode}</b> </h1>
+        {/* <h1>Room code <b>{gameCode}</b> </h1>
         <p>Current Round: <b>{gameData?.currentRound}</b> </p>
         <p>Actual Total Dice value: {actualTotalDice}</p>
         <p>Actual Total Dice value: {translateNumberToSymbol(actualTotalDice)}</p>
@@ -777,19 +868,19 @@ setDevilFinished(true)
         <p>Total Dice of All Players  <b>{totalPlayerDice}</b> </p> 
         <p>round guess total <b>{roundGuessTotal}</b></p>
         <p>round guess total <b>{translateNumberToSymbol(roundGuessTotal)}</b></p>
-        <p>{gameData?.currentTurn && gameData?.players ? <p>It's <b>{getCurrentPlayerName()}</b>'s turn</p> : ""}</p>
+        <p>{gameData?.currentTurn && gameData?.players ? <p>It's <b>{getCurrentPlayerName()}</b>'s turn</p> : ""}</p> */}
 
         {error && <p style={{ color: 'red' }}>{error}</p>} 
 
-        {playerCount == gameData?.maxPlayers && !hasRolled && (
+        {/* {playerCount == gameData?.maxPlayers && !hasRolled && (
           <div>
             <button onClick={handleRollDice}>{translations[language].roll}</button>
           </div>
-          )}
+          )} */}
 
       </div>
 
-        <div className={styles.gameControls}>
+        {/* <div className={styles.gameControls}>
           {gameOver && winner ? (
                 <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
               ) : (
@@ -807,9 +898,9 @@ setDevilFinished(true)
                   )}
                 </>
               )}
-        </div>
+        </div> */}
 
-        <div>
+        {/* <div>
             {devilDiceState == true? (
               <>
               <p>devil roll result: {devilDiceRollResult}</p>
@@ -819,16 +910,15 @@ setDevilFinished(true)
              no devil dice
              </>)}
               <br ></br>
-        </div>
+        </div> */}
 
-        { allChallengedListen === true ? (
+        {/* { allChallengedListen === true ? (
               <>
                 {Object?.entries(gameData?.players).map(([uid, playerData]) => (
                   <div key={uid}>
                     <p>{playerData.name}:</p> 
                     <b>Roll:</b>
                     <p>
-                      {/* Verifica si rollResults no es undefined o null */}
                       {playerData?.rollResults ? (
                         Object.entries(playerData.rollResults).map(([key, value], index) => (
                           <b key={index}>{value}, </b>
@@ -841,10 +931,10 @@ setDevilFinished(true)
                 ))}        
               </>) :
              (<>
-                no dice challenged
-             </>)}
+                No
+             </>)} */}
 
-      {gameData?.players[user?.uid].dice === 0 ? (
+      {/* {gameData?.players[user?.uid].dice === 0 ? (
         <div className={styles.lostText}>
           {translations[language].lostMessage}
         </div>
@@ -938,14 +1028,10 @@ setDevilFinished(true)
 
           </div>
         </div>
-        )}
+        )} */}
 
 
-      <div className={styles.gameControls}>
-
-
-
-
+      {/* <div className={styles.gameControls}>
           {previousPlayerGuess && (
             <p>Last move/dados mandados: <b>{previousPlayerGuessQuantity} {previousPlayerGuess}</b></p>
           )}
@@ -973,9 +1059,9 @@ setDevilFinished(true)
             </div>
           </div>
         )}
-      </div>
+      </div> */}
 
-      <h3>Moves History</h3>
+      {/* <h3>Moves History</h3>
       <div className={styles.movesList}>
           {moves.map((move, index) => {
             const playerName = gameData?.players?.[move.uid]?.name || "Unknown Player";
@@ -989,7 +1075,7 @@ setDevilFinished(true)
               </div>
             );
           })}
-      </div>
+      </div> */}
 
     </div>
   );
