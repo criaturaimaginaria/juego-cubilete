@@ -26,6 +26,7 @@ const GameplayPage = ({ params }) => {
   const [playerGuess, setPlayerGuess] = useState('');
   const [playerGuessQuantity, setPlayerGuessQuantity] = useState(1);
   const [roundGuessTotal, setRoundGuessTotal] = useState(0);
+  const [roundGuessTotalNew, setRoundGuessTotalNew] = useState(0);
   const [actualTotalDice, setActualTotalDice] = useState(0);
   const [roundInProgress, setRoundInProgress] = useState(true);
   const [allPlayersRolled, setAllPlayersRolled] = useState(false);
@@ -56,6 +57,9 @@ const GameplayPage = ({ params }) => {
   const [devilSaved, setDevilSaved] = useState(false);
   const [allChallengedListen, setAllChallengedListen] = useState(false);
 
+  const [symbolChangeStatus, setSymbolStatus] = useState(false);
+  const [quantityStatus, setQuantityStatus] = useState(false);
+  const [userLastGuess, setUserLastGuess] = useState();
 
 
   useEffect(() => {
@@ -100,6 +104,16 @@ const GameplayPage = ({ params }) => {
     const newGuessTotal = getDiceValue(roundGuessTotal + 1, playerGuessQuantity);
     if (autoGuessTotal > roundGuessTotal) { 
 
+
+        // Update the player's status :D
+        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+          lastGuess: autoGuessTotal , 
+          // lastGuess: "2 asss",
+        }).then(() => {
+            console.log("error user state update")
+        });
+
+
       const updates = {
         roundGuessTotal: autoGuessTotal,
         // previousPlayerGuess: playerGuess,
@@ -140,6 +154,8 @@ const GameplayPage = ({ params }) => {
         setGameData(data);
         setPlayerCount(Object.keys(data.players || {}).length);
         setRoundGuessTotal(data.roundGuessTotal || 0);
+        setUserLastGuess(data.players[user.uid].lastGuess)
+        setRoundGuessTotalNew(data.roundGuessTotal + 1 || 0);
         setActualTotalDice(data.actualTotalDice);
         setTotalPlayerDice(calculateTotalPlayerDice(data.players));
         setAllPlayersRolled(data.allPlayersRolled || false); 
@@ -421,22 +437,37 @@ const myPlayerName = getMyPlayerName();
   const handleGuessSubmit = () => {
     if (playerGuess) {
       const newGuessTotal = getDiceValue(playerGuess, playerGuessQuantity);
-      if (newGuessTotal > roundGuessTotal) { 
+
+      // if ((newGuessTotal > roundGuessTotal)  || (roundGuessTotalNew > roundGuessTotal) ) { 
+        if ((newGuessTotal > roundGuessTotal) ) { 
+        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+          lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
+          // lastGuess: newGuessTotal, 
+
+        }).then(() => {
+            console.log("error user state update")
+        });
 
         const updates = {
-          roundGuessTotal: newGuessTotal,
+          roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
+          // roundGuessTotal: newGuessTotal,
           previousPlayerGuess: playerGuess,
-          previousPlayerGuessQuantity: playerGuessQuantity,
+          previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
+          // previousPlayerGuessQuantity: playerGuessQuantity,
+          previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
           currentTurn: getNextTurn()
         };
 
         setPreviousPlayerGuess(playerGuess);
         setPreviousPlayerGuessQuantity(playerGuessQuantity);
-        setRoundGuessTotal(newGuessTotal);
+        setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
+        // setRoundGuessTotal(newGuessTotal);
         update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn() });
         setPlayerGuess('');
         setPlayerGuessQuantity(1);
         setError('');
+        setSymbolStatus(false)
+        setQuantityStatus(false)
 
         update(ref(db, `games/${gameCode}`), updates)
         .then(() => {
@@ -447,7 +478,117 @@ const myPlayerName = getMyPlayerName();
         })
         .catch(error => setError(`Error updating guess: ${error.message}`));
 
-      } else {
+      } else if(((roundGuessTotalNew > roundGuessTotal) && (newGuessTotal >= roundGuessTotal )) && (symbolChangeStatus !== true || quantityStatus !== true)){
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+          lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
+          // lastGuess: newGuessTotal, 
+
+        }).then(() => {
+            console.log("error user state update")
+        });
+
+        const updates = {
+          roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
+          // roundGuessTotal: newGuessTotal,
+          previousPlayerGuess: playerGuess,
+          previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
+          // previousPlayerGuessQuantity: playerGuessQuantity,
+          previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
+          currentTurn: getNextTurn()
+        };
+
+        setPreviousPlayerGuess(playerGuess);
+        setPreviousPlayerGuessQuantity(playerGuessQuantity);
+        setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
+        // setRoundGuessTotal(newGuessTotal);
+        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn() });
+        setPlayerGuess('');
+        setPlayerGuessQuantity(1);
+        setError('');
+        setSymbolStatus(false)
+        setQuantityStatus(false)
+
+        update(ref(db, `games/${gameCode}`), updates)
+        .then(() => {
+          logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
+          setPlayerGuess('');
+          setPlayerGuessQuantity(1);
+          setError(''); 
+        })
+        .catch(error => setError(`Error updating guess: ${error.message}`));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      }
+      else {
         setError("Your guess must be greater than the previous guess."); 
       }
     }
@@ -748,12 +889,21 @@ setDevilFinished(true)
   };
 
   const handleGuessChange = (symbol) => {
+    setSymbolStatus(true)
     setPlayerGuess(symbol);
   };
 
+  // const handleQuantityChange = (increment) => {
+  //   setPlayerGuessQuantity(prevQuantity => {
+  //     const newQuantity = prevQuantity + increment;
+  //     return newQuantity > 0 ? newQuantity : 1;
+  //   });
+  // };
+
   const handleQuantityChange = (increment) => {
+    setQuantityStatus(true)
     setPlayerGuessQuantity(prevQuantity => {
-      const newQuantity = prevQuantity + increment;
+      const newQuantity = Number(prevQuantity) + increment; 
       return newQuantity > 0 ? newQuantity : 1;
     });
   };
@@ -761,6 +911,51 @@ setDevilFinished(true)
   if (!gameCode) {
     return <div>Error: No game code provided</div>;
   }
+
+
+  // const playerKeys = Object.keys(gameData?.players || {}); // Obtiene las claves (userIds)
+  // const filteredPlayers = playerKeys.filter(playerKey => playerKey !== user?.uid);
+
+  // const currentPlayerIndex = playerKeys.indexOf(user.uid);
+  // const before = playerKeys.slice(0, currentPlayerIndex);
+  // const after = playerKeys.slice(currentPlayerIndex + 1); 
+
+  // const leftSidePlayers = [...before.slice(-Math.ceil(before.length / 2)), ...after.slice(0, Math.floor(after.length / 2))];
+  // const rightSidePlayers = [...after.slice(Math.floor(after.length / 2)), ...before.slice(0, Math.ceil(before.length / 2))];
+
+
+  const playerKeys = Object.keys(gameData?.players || {}); 
+  const filteredPlayers = playerKeys.filter(playerKey => playerKey !== user?.uid); 
+  
+  const totalPlayers = filteredPlayers.length; 
+  const currentPlayerIndex = playerKeys.indexOf(user?.uid); // find player position
+  
+  const before = filteredPlayers.slice(0, currentPlayerIndex); 
+  const after = filteredPlayers.slice(currentPlayerIndex); 
+  
+  const half = Math.ceil(totalPlayers / 2); 
+  
+  let leftSidePlayers = [];
+  let rightSidePlayers = [];
+  
+  // adding jugadores a los costados
+  for (let i = 0; i < totalPlayers; i++) {
+      if (i < half) {
+          leftSidePlayers.push(filteredPlayers[i]); 
+      } else {
+          rightSidePlayers.push(filteredPlayers[i]); 
+      }
+  }
+  
+  // verify if there are duplicated players
+  leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(player));
+  rightSidePlayers = rightSidePlayers.filter(player => !leftSidePlayers.includes(player));
+  
+
+  // console.log("filteredPlayers", user?.uid)
+  console.log("playerKeys", playerKeys)
+  // console.log("filteredPlayers", filteredPlayers)
+
 
   return (
     <div className={styles.pageContainer}>
@@ -770,6 +965,230 @@ setDevilFinished(true)
 
           <div className={styles.tableContainer}>
 
+            <div className={styles.menuContainer}>
+              <button>Menu</button>
+            </div>
+
+            <div className={styles.countdownContainer}>
+              <div className={styles.circle}>
+                <div
+                  className={styles.filler}
+                  style={{
+                    background: `conic-gradient(#fff 0% calc(${(timeLeft / 25) * 100}%), ${timeLeft <= 7 ? '#d10000' : '#000'} calc(${(timeLeft / 25) * 100}%))`,
+                    transition: 'background 1s ease-in-out', // Transición suave
+                  }}
+                />
+              </div>
+                <p className={styles.timeText}>
+                  <p>Tiempo: <b style={{ color: timeLeft <= 7 ? '#fff' : '#fff' }}>{timeLeft}</b> </p>
+                </p>
+            </div>
+
+            <div className={styles.challengeButtonContainer}>
+              {gameData?.players[user?.uid].dice === 0 ? (
+                <div></div>
+                ) : (
+                <div>
+                  <div className={styles.gameControls2}>
+                    {/* {roundInProgress && allPlayersRolled && ( */}
+                    {roundInProgress && allPlayersRolled && userLastGuess !== roundGuessTotal && (
+                      <>
+                        {!Object.keys(playersChallenges).length ? (
+                          <button 
+                            onClick={() => handleChallenge(false)} 
+                            disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
+                            style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
+                          >
+                            {translations[language].disbelieve}
+                          </button>
+                        ) : (
+                         
+                          <>
+                            {secondToLastPlayerUID === user?.uid ?  (
+                                <button 
+                                  onClick={() => handleChallenge(true)} 
+                                  disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
+                                  style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
+                                >
+                                  {translations[language].believe}
+                                </button>
+                            
+                            ) : (
+                              <>
+                              <button 
+                                onClick={() => handleChallenge(true)} 
+                                disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
+                                style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
+                              >
+                                {translations[language].believe}
+                              </button>
+                                <button 
+                                  onClick={() => handleChallenge(false)} 
+                                  disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
+                                  style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
+                                >
+                                  Disbelieve
+                                </button>
+                              </>
+                            )}
+                         </>
+                        )}
+                      </>
+                    )}
+
+                  </div>
+                </div>
+                )}
+            </div>
+
+
+
+          {/* <div className={styles.mesaContainer}>
+            <div className={styles.mesa}>
+              {filteredPlayers.map(playerKey => (
+                <div key={playerKey} className={styles.jugadorContainer}>
+
+                  <div className={styles.cuadradoVerde}></div>
+
+                  <div className={styles.cuadradoRojo}>
+                    {gameData?.players[playerKey]?.name}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div> */}
+
+          {/* <div className={styles.mesaContainer}>
+            <div className={styles.mesa}>
+              {filteredPlayers.map((playerKey, index) => {
+                const isLeftSide = index < Math.ceil(filteredPlayers.length / 2);
+                const sideClass = isLeftSide ? styles.leftSide : styles.rightSide;
+
+                return (
+                  <div key={playerKey} className={`${styles.jugadorContainer} ${sideClass}`}>
+                    <div className={styles.cuadradoVerde}></div>
+                    <div className={styles.cuadradoRojo}>
+                      {gameData?.players[playerKey]?.name}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div> */}
+
+
+          <div className={styles.mesaContainer}>
+            <div className={styles.mesa}>
+
+              <div className={styles.DicesInGame}>
+                <b>Dices in game {totalPlayerDice}</b>
+              </div>
+ 
+
+
+              {/* Contenedor del lado izquierdo */}
+              <div className={styles.leftColumn}>
+                {leftSidePlayers.map((playerKey, index) => (
+                  <div key={playerKey} className={styles.jugadorContainerLeft}>
+                    <div className={styles.cuadradoVerde}>
+                      <div className={styles.cubiletHead}></div>
+                      <div className={styles.cubiletBody}></div>
+                    </div>
+                    <div className={styles.cuadradoRojo}>
+                      <p>{gameData?.players[playerKey]?.name}</p>
+                      <div className={styles.diceContainer2}>
+                         {Array.from({ length: gameData?.players[playerKey]?.dice }).map((_, index) => (
+                          <div key={index} className={styles.dice}></div>
+                        ))}  
+                        {gameData?.players[playerKey]?.dice == 0 ? <div className={styles.diceTransparent}></div> : <></>}                   
+                      </div>
+
+                      {/* {gameData?.players[playerKey]?.isCurrentTurn == true ? "YES" : "NO"} */}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className={styles.tableCenter}>
+
+                <div className={styles.tableCenterContent}>
+                  <p>Last</p>
+                  {previousPlayerGuess && (
+                    <div className={styles.lastGuessContainer}>
+                      <b>{previousPlayerGuessQuantity}x</b>
+                      <div className={styles.lastGuessDice}>{previousPlayerGuess}</div>
+                    </div>
+                  )}                  
+                </div>
+
+                <div className={styles.devilDiceInfoContainer}>
+
+{
+
+  (translateNumberToSymbol(roundGuessTotal).split(' ')[0]) - 
+   PlayersSymbolSum[translateNumberToSymbol(roundGuessTotal).split(' ')[1]] === 1 ? "YAS" : "NOS"
+}
+
+                    {devilDiceState == true? (
+                      <>
+                      <p>devil roll result: {devilDiceRollResult}</p>
+                        <button onClick={devilDice}>devil dice</button>                      
+                      </>) :
+                    (<>
+                    no devil dice
+                    </>)}
+  
+                </div>
+
+
+              </div>
+
+              {/* Contenedor del lado derecho */}
+              <div className={styles.rightColumn}>
+                {rightSidePlayers.map((playerKey, index) => (
+                  <div key={playerKey} className={styles.jugadorContainerRight}>
+                    <div className={styles.cuadradoVerde}>
+                      <div className={styles.cubiletHead}></div>
+                      <div className={styles.cubiletBody}></div>
+                    </div>
+                    <div className={styles.cuadradoRojo}>
+                      <p>{gameData?.players[playerKey]?.name}</p>
+                      <div className={styles.diceContainer2}>
+                         {Array.from({ length: gameData?.players[playerKey]?.dice }).map((_, index) => (
+                          <div key={index} className={styles.dice}></div>
+                        ))}                     
+                      </div>
+                      {/* {gameData?.players[playerKey]?.isCurrentTurn == true ? "YES" : "NO"} */}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* <div className={styles.userTable}>
+                Cosas mias, del jugador principal en primera persona
+                ador principal en primera persona
+                ador principal en primera persona
+              </div> */}
+            </div>
+            <div className={styles.lowTable}>
+              <div className={styles.userTable}>
+                <div className={styles.userTableSpace}>
+                  {gameData?.players[user.uid]?.rollResults && (
+             
+                      <div className={styles.pyramidContainer}>
+                        {gameData.players[user.uid].rollResults.map((result, index) => (
+                          <div className={styles.square} key={index}>
+                            <b>{result}</b>
+                          </div>
+                        ))}
+                      </div>
+        
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
 
 
 
@@ -777,62 +1196,65 @@ setDevilFinished(true)
           </div>
 
           <div className={styles.controlsContainer}>
-
-
-      {gameData?.players[user?.uid].dice === 0 ? (
-        <div className={styles.lostText}>
-          {translations[language].lostMessage}
-        </div>
-        ) : (
-        <div>
-          <div className={styles.gameControls}>
-            {gameOver && winner ? (
-                <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
+            {gameData?.players[user?.uid].dice === 0 ? (
+              <div className={styles.lostText}>
+                {translations[language].lostMessage}
+              </div>
               ) : (
-                <>
-                  {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
-                    <div>
-                      <button onClick={handleRollDice}>{translations[language].roll}</button>
-                    </div>
-
-                  ) : (
-                    isPlayerTurn() && !Object.keys(playersChallenges).length ? (
-                      <div className={styles.controls}>
-                        <div className={styles.controlsSymbols}>
-                          <div className={styles.symbolContainer}>
-                            {SYMBOLS.map(symbol => (
-                              <button key={symbol} onClick={() => handleGuessChange(symbol)}>
-                                {symbol}
-                              </button>
-                            ))}                        
+              <div>
+                <div className={styles.gameControls}>
+                  {gameOver && winner ? (
+                      <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
+                    ) : (
+                      <>
+                        {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
+                          <div>
+                            <button onClick={handleRollDice}>{translations[language].roll}</button>
                           </div>
 
-                        </div>
-                        <div className={styles.moreLessButtons}>
-                          <button className={styles.moreButton} onClick={() => handleQuantityChange(1)}>+</button>                       
-                          <span>x{playerGuessQuantity}</span>
-                          <button className={styles.lessButton} onClick={() => handleQuantityChange(-1)}>-</button>
-                        </div>
-                        <div className={styles.controlsSendButton}>
-                          <button onClick={handleGuessSubmit}>
-                            {translations[language].send} {playerGuessQuantity} {playerGuess}
-                          </button>
-                        </div>
-                      </div>
-                    ) : ( 
+                        ) : (
+                          isPlayerTurn() && !Object.keys(playersChallenges).length ? (
+                            <div className={styles.controls}>
+                              <div className={styles.controlsSymbols}>
+                                <div className={styles.symbolContainer}>
+                                  {SYMBOLS.map(symbol => (
+                                    <button key={symbol} onClick={() => handleGuessChange(symbol)}>
+                                      {symbol}
+                                    </button>
+                                  ))}                        
+                                </div>
 
-                      <>
-                            <p>Waiting for your turn...</p>
+                              </div>
+                              <div className={styles.moreLessButtons}>
+                                <button className={styles.moreButton} onClick={() => handleQuantityChange(1)}>+</button>                       
+                                <span>{playerGuessQuantity}x</span>
+                                <button className={styles.lessButton} onClick={() => handleQuantityChange(-1)}>-</button>
+                              </div>
+                              <div className={styles.controlsSendButton}>
+                                <button onClick={handleGuessSubmit}>
+                                  {translations[language].send} {symbolChangeStatus == true || quantityStatus == true ? 
+                                  `${playerGuessQuantity} ${playerGuess}` 
+                                  :  translateNumberToSymbol(roundGuessTotalNew)}
+                                  {/* {translateNumberToSymbol(roundGuessTotalNew)}-
+                                  {playerGuessQuantity} {playerGuess}  */}
+
+                                </button>
+                              </div>
+                            </div>
+                          ) : ( 
+
+                            <>
+                                  {/* <p>Waiting for your turn...</p> */}
+                            </>
+                      
+                          ) 
+                        )}
                       </>
-                
-                    ) 
-                  )}
-                </>
-              )}
+                    )}
 
-          </div>
-        </div>
-        )}
+                </div>
+              </div>
+              )}
 
 
 
@@ -841,6 +1263,19 @@ setDevilFinished(true)
                 <button onClick={handleRollDice}>{translations[language].roll}</button>
               </div>
               )}
+
+
+                <div className={styles.devilDiceButtonContainer}>
+                    {devilDiceState == true? (
+                      <>
+                      <p>devil roll result: {devilDiceRollResult}</p>
+                        <button onClick={devilDice}>devil dice</button>                      
+                      </>) :
+                    (<>
+                    no devil dice
+                    </>)}
+  
+                </div>
 
 
           </div>
@@ -872,6 +1307,7 @@ setDevilFinished(true)
 
         {error && <p style={{ color: 'red' }}>{error}</p>} 
 
+          {/* //used */}
         {/* {playerCount == gameData?.maxPlayers && !hasRolled && (
           <div>
             <button onClick={handleRollDice}>{translations[language].roll}</button>
@@ -880,7 +1316,10 @@ setDevilFinished(true)
 
       </div>
 
+
         {/* <div className={styles.gameControls}>
+
+        maybe i will not need this
           {gameOver && winner ? (
                 <p style={{ color: 'green' }}>{winner} {translations[language].winMessage}</p>
               ) : (
@@ -934,6 +1373,8 @@ setDevilFinished(true)
                 No
              </>)} */}
 
+
+      {/* ya usado */}
       {/* {gameData?.players[user?.uid].dice === 0 ? (
         <div className={styles.lostText}>
           {translations[language].lostMessage}
@@ -1031,6 +1472,9 @@ setDevilFinished(true)
         )} */}
 
 
+
+
+{/* all used except the animation */}
       {/* <div className={styles.gameControls}>
           {previousPlayerGuess && (
             <p>Last move/dados mandados: <b>{previousPlayerGuessQuantity} {previousPlayerGuess}</b></p>
