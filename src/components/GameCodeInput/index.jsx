@@ -23,7 +23,7 @@ const GameCodeInput = () => {
 
   const minValueNumDice = 5; 
   const maxValueNumDice = 7;
-  const minValueNumPlayers = 3; 
+  const minValueNumPlayers = 2; 
   const maxValueNumPlayers = 8;
 
   const handleGenerateRandomCode = async () => {
