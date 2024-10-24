@@ -63,6 +63,9 @@ const GameplayPage = ({ params }) => {
   const [userLastGuess, setUserLastGuess] = useState();
 
   const [menuPopUp, setMenuPopUp] = useState(false);
+  const [direction, setDirection] = useState('');
+
+
 
   const menuPopUpFunction = (uid) => {
     setMenuPopUp(!menuPopUp)
@@ -127,13 +130,13 @@ const GameplayPage = ({ params }) => {
         // previousPlayerGuessQuantity: playerGuessQuantity,
         previousPlayerGuess: translateNumberToSymbol(roundGuessTotal +1).split(' ')[1],
         previousPlayerGuessQuantity: translateNumberToSymbol(roundGuessTotal +1).split(' ')[0] ,
-        currentTurn: getNextTurn()
+        currentTurn: getNextTurn(direction)
       };
 
       setPreviousPlayerGuess(playerGuess);
       // setPreviousPlayerGuessQuantity(playerGuessQuantity);
       setRoundGuessTotal(autoGuessTotal);
-      update(ref(db, `games/${gameCode}`), { roundGuessTotal: autoGuessTotal, currentTurn: getNextTurn() });
+      update(ref(db, `games/${gameCode}`), { roundGuessTotal: autoGuessTotal, currentTurn: getNextTurn(direction) });
       setPlayerGuess('');
       setPlayerGuessQuantity(1);
       setError('');
@@ -161,6 +164,7 @@ const GameplayPage = ({ params }) => {
         setGameData(data);
         setPlayerCount(Object.keys(data.players || {}).length);
         setRoundGuessTotal(data.roundGuessTotal || 0);
+        setDirection(data.roundDirection || 'forward');
         setUserLastGuess(data.players[user.uid].lastGuess)
         setRoundGuessTotalNew(data.roundGuessTotal + 1 || 0);
         setActualTotalDice(data.actualTotalDice);
@@ -259,7 +263,7 @@ const GameplayPage = ({ params }) => {
       const data = snapshot.val();
       if (data !== null) {
         setAllChallengedListen(data); 
-        console.log("allPlayersChallenged changed:", data);
+        // console.log("allPlayersChallenged changed:", data);
       }
     });
 
@@ -477,14 +481,14 @@ const myPlayerName = getMyPlayerName();
           previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
           // previousPlayerGuessQuantity: playerGuessQuantity,
           previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
-          currentTurn: getNextTurn()
+          currentTurn: getNextTurn(direction)
         };
 
         setPreviousPlayerGuess(playerGuess);
         setPreviousPlayerGuessQuantity(playerGuessQuantity);
         setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
         // setRoundGuessTotal(newGuessTotal);
-        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn() });
+        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
         setPlayerGuess('');
         setPlayerGuessQuantity(1);
         setError('');
@@ -504,26 +508,6 @@ const myPlayerName = getMyPlayerName();
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         update(ref(db, `games/${gameCode}/players/${user.uid}`), {
           lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
           // lastGuess: newGuessTotal, 
@@ -539,14 +523,14 @@ const myPlayerName = getMyPlayerName();
           previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
           // previousPlayerGuessQuantity: playerGuessQuantity,
           previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
-          currentTurn: getNextTurn()
+          currentTurn: getNextTurn(direction)
         };
 
         setPreviousPlayerGuess(playerGuess);
         setPreviousPlayerGuessQuantity(playerGuessQuantity);
         setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
         // setRoundGuessTotal(newGuessTotal);
-        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn() });
+        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
         setPlayerGuess('');
         setPlayerGuessQuantity(1);
         setError('');
@@ -560,54 +544,7 @@ const myPlayerName = getMyPlayerName();
           setPlayerGuessQuantity(1);
           setError(''); 
         })
-        .catch(error => setError(`Error updating guess: ${error.message}`));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        .catch(error => setError(`Error updating guess: ${error.message}`))
 
       }
       else {
@@ -776,7 +713,7 @@ setDevilFinished(true)
       }
     });
     // select el siguiente turno solo de jugadores activos:
-    const nextTurnPlayer = getNextTurn();
+    const nextTurnPlayer = getNextTurn(direction);
     if (nextTurnPlayer) {
       updates['currentTurn'] = nextTurnPlayer;
     } else {
@@ -851,42 +788,89 @@ setDevilFinished(true)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  const getNextTurn = () => {
-    const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
+//   const getNextTurn = () => {
+//     const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
     
-    if (activePlayers.length === 0) {
-        return null; 
-    }
+//     if (activePlayers.length === 0) {
+//         return null; 
+//     }
 
-    const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
-    let nextTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
+//     const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
+//     let nextTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
 
-    while (gameData.players[activePlayers[nextTurnIndex]].dice <= 0) {
-        nextTurnIndex = (nextTurnIndex + 1) % activePlayers.length;
+//     while (gameData.players[activePlayers[nextTurnIndex]].dice <= 0) {
+//         nextTurnIndex = (nextTurnIndex + 1) % activePlayers.length;
 
-        if (nextTurnIndex === currentTurnIndex) {
-            return null; 
-        }
-    }
-    return activePlayers[nextTurnIndex]; // Return the next player with dice
+//         if (nextTurnIndex === currentTurnIndex) {
+//             return null; 
+//         }
+//     }
+//     return activePlayers[nextTurnIndex];
+// };
+
+
+const getNextTurn = (direction) => {
+  const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
+  
+  if (activePlayers.length === 0) {
+      return null; 
+  }
+
+  const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
+  let nextTurnIndex;
+
+  // Avanzar hacia adelante o hacia atrás según el valor de direction
+  if (direction === 'forward') {
+      nextTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
+  } else if (direction === 'backward') {
+      nextTurnIndex = (currentTurnIndex - 1 + activePlayers.length) % activePlayers.length;
+  }
+
+  // Asegurarse de que el jugador tiene dados
+  while (gameData?.players[activePlayers[nextTurnIndex]]?.dice <= 0) {
+      if (direction === 'forward') {
+          nextTurnIndex = (nextTurnIndex + 1) % activePlayers.length;
+      } else if (direction === 'backward') {
+          nextTurnIndex = (nextTurnIndex - 1 + activePlayers.length) % activePlayers.length;
+      }
+
+      // Evitar bucles infinitos si no hay jugadores con dados
+      if (nextTurnIndex === currentTurnIndex) {
+          return null; 
+      }
+  }
+
+  return activePlayers[nextTurnIndex]; // Retorna el siguiente jugador activo
 };
+
+
+
+
+
+const handleDirectionChange = () => {
+  // setDirection(direction === 'forward' ? 'backward' : 'forward');
+
+  if(direction === 'forward'){
+    setDirection('backward')
+    update(ref(db, `games/${gameCode}`), {
+      roundDirection: 'backward',
+    });
+  }
+  if(direction === 'backward'){
+    setDirection('forward')
+    update(ref(db, `games/${gameCode}`), {
+      roundDirection: 'forward',
+    });
+  }
+
+  // update(ref(db, `games/${gameCode}`), {
+  //   roundDirection: direction,
+  // });
+};
+
+
+
+
 
   const isPlayerTurn = () => {
     if (gameData && gameData.currentTurn && user && user.uid) {
@@ -991,9 +975,9 @@ for (let i = 0; i < totalPlayers; i++) {
 }
 
 if (leftSidePlayers.length < half) {
-    console.log('Jugador principal estaría al final de leftSidePlayers');
+    // console.log('Jugador principal estaría al final de leftSidePlayers');
 } else {
-    console.log('Jugador principal debería estar después de los jugadores a la derecha');
+    // console.log('Jugador principal debería estar después de los jugadores a la derecha');
 }
 
 rightSidePlayers = rightSidePlayers.filter(player => !leftSidePlayers.includes(player));
@@ -1002,8 +986,8 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
   // console.log("filteredPlayers", user?.uid)
   // console.log("playerKeys", playerKeys)
-  console.log("leftSidePlayers", leftSidePlayers)
-  console.log("rightSidePlayers", rightSidePlayers)
+  // console.log("leftSidePlayers", leftSidePlayers)
+  // console.log("rightSidePlayers", rightSidePlayers)
   // console.log("filteredPlayers", filteredPlayers)
 
 
@@ -1083,6 +1067,31 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                             
                             ) : (
                               <>
+
+
+
+
+                              {/* 
+                              --------------////////////----------------/////////////////---------------////////////-------
+                              IMPORTANT! handleDirectionChange funciona, cambia la dirección de la ronda,
+                              si es para delante o para atrás. La comento porque aún no está posicionada en
+                              los diseños, así que no se donde meterla. Se muestra solo al comienzo.
+
+                              se puede mostrar solamente si roundGuessTotal es == a cero, porque solo el primer
+                              jugador en su primer turno puede decidir para dodne va la ronda. Creo este botón se
+                              mostraba mas adelante en lo de believe y disbelieve, pero ahí lo podemos mostrar con
+                              otras condiciones
+                              
+                              */}
+                              {/* <button onClick={handleDirectionChange}>
+                                  Cambiar dirección a {direction === 'forward' ? 'backward' : 'forward'}
+                              </button>
+                              --------------////////////----------------/////////////////---------------////////////-------
+                              */}
+
+
+
+
                               {/* <button 
                                 onClick={() => handleChallenge(true)} 
                                 disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0} 
@@ -1395,6 +1404,15 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                                 <span>{playerGuessQuantity}x</span>
                                 <button className={styles.lessButton} onClick={() => handleQuantityChange(-1)}>-</button>
                               </div>
+
+
+
+                              <button onClick={handleDirectionChange}>
+                                  Cambiar dirección a {direction === 'forward' ? 'backward' : 'forward'}
+                              </button>
+
+
+
                               <div className={styles.controlsSendButton}>
                                 <button onClick={handleGuessSubmit}>
                                   {translations[language].send} {symbolChangeStatus == true || quantityStatus == true ? 
