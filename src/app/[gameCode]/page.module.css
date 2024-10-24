@@ -497,6 +497,7 @@ justify-items: center; */
   flex-direction:column;
   flex: 1;
   height: 100%;
+  /* flex-direction:column-reverse; */
 }
 
 .rightColumn {
@@ -507,6 +508,7 @@ justify-items: center; */
   /* flex-direction: column; */
   flex: 1;
   height: 100%;
+  flex-direction:column-reverse;
 }
 
 
@@ -778,7 +780,7 @@ justify-items: center; */
 
 .cuadradoRojo p{
   text-align:center;
-  color: #fff;
+  /* color: #fff; */
   font-size:min(2.5vw, 2.5em);
 }
 
