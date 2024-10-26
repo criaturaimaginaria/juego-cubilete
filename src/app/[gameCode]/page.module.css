@@ -534,6 +534,38 @@ justify-items: center; */
   background-color: rgba(255, 255, 255, 0);
 }
 
+.diceLost {
+  position:relative;
+  width: min(2vw, 2em);
+  height: min(2vw, 2em);
+  margin: 2px;
+  background-color: #fff;
+}
+
+.diceLost::before,
+.diceLost::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  height: 2px;
+  background-color: red;
+  transform-origin: center;
+}
+
+.diceLost::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.diceLost::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+
+
+
+
 
 .tableCenter{
   display:flex;
@@ -704,6 +736,50 @@ justify-items: center; */
   /* background-color: green; */
   margin-bottom: 0px;
 }
+
+
+.rolledText{
+  font-size: min(2.5vw, 2.5em);   
+  color:#fff;
+  position:absolute;
+  bottom: 0;
+  margin-bottom:min(1vw, 1em); 
+}
+/* ---------------------------------- */
+.pyramidContainer3 {
+  position: absolute; 
+  bottom: 0;
+  display: flex;          
+  flex-wrap: wrap;          
+  justify-content: center;     
+
+  height:fit-content;    
+  /* width:35%;    */
+  /* background-color:red; */
+  transform: rotate(180deg); 
+}
+
+.square3 {
+  font-size: min(2.4vw, 2.4em);   
+  width: min(4vw, 4em);           
+  height: min(4vw, 4em);      
+  border-radius: min(1.2vw, 1.2em);
+  background-color: white;    
+  display: flex;              
+  justify-content: center;    
+  align-items: center;       
+  border: 1px solid black;    
+  color:black;
+  transform: rotate(180deg); 
+}
+
+
+
+/* ---------------------------------- */
+
+
+
+
 
 .cubiletHead{
   font-size: min(3vw, 3em);
@@ -1007,10 +1083,26 @@ justify-items: center; */
   } */
 
   .lostText{
+    position: absolute;
+    display:flex;
+    justify-content: center;
+    width: 100%;
     color:red;
     margin-left:auto;
     margin-right: auto;
-    padding: 0.5em;
+    /* padding: 0.5em; */
+    font-size:1.6em;
+  }
+
+  .winMessage{
+    position: absolute;
+    display:flex;
+    justify-content: center;
+    width: 100%;
+    color:green;
+    margin-left:auto;
+    margin-right: auto;
+    /* padding: 0.5em; */
     font-size:1.6em;
   }
 

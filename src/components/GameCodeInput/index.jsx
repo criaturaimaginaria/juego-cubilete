@@ -41,6 +41,7 @@ const GameCodeInput = () => {
         guess: null,
         dice: numDice,
         isCurrentTurn: true,
+        readyForNextRound:false,
       };
       await update(gameRef, {
         [`players/${user.uid}`]: playerData,
