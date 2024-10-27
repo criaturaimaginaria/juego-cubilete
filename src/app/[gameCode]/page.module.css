@@ -206,6 +206,23 @@ justify-items: center; */
   margin:min(5vw, 5em);
 }
 
+
+.directionContainer{
+  display:flex;
+  justify-content:center;
+  position: absolute;
+  bottom:0px;
+  width:100%;
+}
+
+.directionContainer button{
+  color:#fff;
+  background-color:black;
+  border:1px solid #fff;
+}
+
+
+
 .areThere{
   display:flex;
   justify-content:center;
