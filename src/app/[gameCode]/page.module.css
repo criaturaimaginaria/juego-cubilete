@@ -432,9 +432,20 @@ justify-items: center; */
   justify-content:center;
   position:absolute;
   height:fit-content;
-  top:min(11vw, 11em);
+  top:min(8vw, 8em);
   width:100%;
   font-size:min(3.5vw, 3.5em);
+  color:#fff;
+}
+
+.turnMessage{
+  display:flex;
+  justify-content:center;
+  position:absolute;
+  height:fit-content;
+  top:min(16vw, 16em);
+  width:100%;
+  font-size:min(3vw, 3em);
   color:#fff;
 }
 
