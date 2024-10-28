@@ -1187,6 +1187,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                 <Link href="/" passHref>
                   <button className={styles.goHomeButton}>Ir a Inicio</button>
                 </Link>
+                <p>Room Code: {gameCode}</p>
               </div>
             </div>
 
@@ -1218,7 +1219,26 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                 </p>
             </div>
 
+            <div className={styles.changeDirection}>
+
+              {gameData?.currentTurn == user?.uid && gameData?.roundGuessTotal == 0 ? 
+                  <>
+                  <button onClick={handleDirectionChange}>
+                      Cambiar dirección a {direction === 'forward' ? 'backward' : 'forward'}
+                  </button>
+                  </> :
+                  <>
+                  
+                  </>
+
+                  }
+
+            </div>
+
+
             <div className={styles.challengeButtonContainer}>
+
+
               {gameData?.players[user?.uid].dice === 0 ? (
                 <div></div>
                 ) : (
@@ -1713,8 +1733,18 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
 
 
+
+
+
+
+
+
+
             {playerCount == gameData?.maxPlayers && !hasRolled && (
               <div className={styles.diceRoll}>
+
+
+
                 <div className={styles.diceRollFirst}>
                   <button onClick={handleRollDice}>{translations[language].roll}</button>
                 </div>

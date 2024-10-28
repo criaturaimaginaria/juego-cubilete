@@ -982,6 +982,7 @@ justify-items: center; */
 }
 
 .challengeButtonContainer button{
+  z-index:40;
   width: min(17vw, 17em);
   height: min(17vw, 17em);
   color: #fff;
@@ -991,6 +992,26 @@ justify-items: center; */
   border-radius: min(30vw, 30em);
 }
 
+
+.changeDirection{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin: 8px;
+  z-index:50;
+}
+
+.changeDirection button{
+  font-size:min(3vw, 3em);
+  z-index:50;
+  width: min(17vw, 17em);
+  height: min(17vw, 17em);
+  color: #fff;
+  border: 1px solid #fff;
+  padding:min(0.5vw, 0.5em);
+  background-color:black;
+  border-radius: min(2vw, 2em);
+}
 
 
 
