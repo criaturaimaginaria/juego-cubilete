@@ -1338,7 +1338,20 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
             <div className={styles.mesa}>
 
               <div className={styles.DicesInGame}>
-                <b>Dices in game {totalPlayerDice}</b>
+                <b>Dices in game {totalPlayerDice}</b> 
+              </div>
+ 
+              <div className={styles.turnMessage}>
+                { gameData?.challengeStatus == true ? 
+                  <>
+                    <b>{gameData?.currentTurn === user?.uid ? 
+                      <p style={{color:'green'}}>Is your turn</p> :
+                      <p style={{color:'red'}}>wait your turn</p> 
+                      }
+                    </b> 
+                  </> :
+                  <></> 
+                  }
               </div>
  
 
@@ -1417,7 +1430,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                     </div>
                     <div className={styles.cuadradoRojo}>
                       <p
-                        style={{ color: playerKey == gameData?.currentTurn  ? 'orange' : '#fff' }}
+                        style={{ color: playerKey == gameData?.currentTurn && gameData?.allPlayersRolled == true  ? 'orange' : '#fff' }}
                       >{gameData?.players[playerKey]?.name}</p>
                       <div className={styles.diceContainer2}>
                          {Array.from({ length: gameData?.players[playerKey]?.dice }).map((_, index) => (
@@ -1560,13 +1573,11 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
                           </>
                       }
-
-
                       
                     </div>
                     <div className={styles.cuadradoRojo}>
                       <p
-                       style={{ color: playerKey == gameData?.currentTurn ? 'orange' : '#fff' }}
+                       style={{ color: playerKey == gameData?.currentTurn && gameData?.allPlayersRolled == true ? 'orange' : '#fff' }}
                       >{gameData?.players[playerKey]?.name}</p>
                       <div className={styles.diceContainer2}>
                          {Array.from({ length: gameData?.players[playerKey]?.dice }).map((_, index) => (
