@@ -35,6 +35,8 @@ const GameCodeInput = () => {
     try {
       await createGame(randomCode, numPlayers, numDice);
 
+      // const newChallenges = playersChallenges || {};
+
       const gameRef = ref(db, `games/${randomCode}`);
       const playerData = {
         name: user.displayName,
