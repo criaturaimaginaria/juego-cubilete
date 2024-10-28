@@ -1814,14 +1814,14 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                                     disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0 ||  Object.keys(gameData?.playersChallenges || {}).includes(user?.uid) || user.uid !== gameData?.currentTurn } 
                                     style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
                                   >
-                                    {translations[language].believe}***
+                                    {translations[language].believe}
                                   </button>
                                   <button 
                                       onClick={() => handleChallenge(false)} 
                                       disabled={hasPlayerChosen(user.uid) || roundGuessTotal === 0 || Object.keys(gameData?.playersChallenges || {}).includes(user?.uid) || user.uid !== gameData?.currentTurn} 
                                       style={{ opacity: hasPlayerChosen(user.uid) || roundGuessTotal === 0 ? 0.5 : 1 }}
                                     >
-                                      Disbelieve***
+                                      Disbelieve
                                     </button>   
                                 </div>
 
