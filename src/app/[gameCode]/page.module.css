@@ -598,6 +598,7 @@ justify-items: center; */
 .tableCenter{
   display:flex;
   justify-content:center;
+  flex-direction:column;
   align-items: center;
   position: absolute;
   z-index:5;
@@ -615,7 +616,27 @@ justify-items: center; */
 
 }
 
+.tableCenterActual{
+  text-align:center;
+  display: flex;
+  justify-content: center;
+  flex-direction:column;
+  align-items:center;
+  position:absolute;
+  color: #fff;
+  /* position:absolute; */
+  /* margin-bottom:min(-8vw, -8em); */
+  top:min(1vw, 1em);
+  top:18%;
+}
+
+.tableCenterActual p{
+  font-size:min(5vw, 5em);
+  margin-bottom:min(1vw, 1em);
+}
+
 .tableCenterContent{
+  /* margin-top:min(-8vw, -8em); */
   display:flex;
   justify-content:center;
   flex-direction:column;
@@ -665,7 +686,9 @@ justify-items: center; */
   position:absolute;
   color: #fff;
   /* background-color: aqua; */
-  margin-top:min(30vw, 30em);
+  /* margin-top:min(35vw, 35em); */
+  /* margin-top:90%; */
+  top:65%;
 }
 
 .devilDiceButtonContainer{
@@ -897,7 +920,37 @@ justify-items: center; */
 
 
 
+.winnerGeneral{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  font-size: min(2.6vw, 2.6em);
+  color:green;
+  position: absolute;
+  top: 15%;
+  /* left: 50%; */
+  width:100%;
+  background-color:red;
+    /* height: 100vh; */
+  z-index: 4;
+}
 
+.winMessage2{
+  position: absolute;
+  display:flex;
+  justify-content: center;
+  width: fit-content;
+  color:green;
+  margin-left:auto;
+  margin-right: auto;
+  /* padding: 0.5em; */
+  background-color:black;
+  font-size:1.6em;
+  padding:min(2vw, 2em);
+  border:1px solid #fff;
+  border-radius:min(2.5vw, 2.5em);
+}
 
 
 
@@ -954,6 +1007,122 @@ justify-items: center; */
   margin: 10px;
   transition: 1s ease-in-out;
 }
+
+
+
+
+.roomCodeStarting{
+  display:flex;
+  color:#fff;
+  position:absolute;
+  flex-direction:column;
+  align-items:center;
+
+  justify-content:center;
+  /* background-color:red; */
+  width:100%;
+}
+
+/* ****************copy roomcode*******************/
+
+.copyRoomCodeContainer{
+  z-index:100;
+
+  font-size: min(2.8vw, 2.8em);
+  color:#fff;
+  position: absolute;
+  top: 4.5%;
+  left: 0;
+  margin: 10px;
+  transition: 1s ease-in-out;
+}
+
+.copyButton {
+  font-size: min(3.3vw, 3.3em);
+  padding:  min(1.6vw, 1.6em);
+  margin-top:  min(0.7vw, 0.7em);
+  background-color: #fff;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border:1px solid black;
+}
+
+.copyButton:hover {
+  background-color: "fff";
+}
+
+.copied {
+  background-color: #00c853;
+  animation: flash 0.6s ease-in-out;
+}
+
+@keyframes flash {
+  0% { background-color: #00c853; }
+  50% { background-color: #69f0ae; }
+  100% { background-color: #00c853; }
+}
+
+
+
+
+
+
+
+
+
+
+.inputContainer {
+
+  width: auto; 
+  display: flex;
+  align-items: center;
+  /* gap: 10px; */
+  z-index:100;
+}
+
+.inputText {
+  position:absolute;
+  /* display:none; */
+  left:-100vw;
+  padding: min(0.5vw, 0.5em);
+  font-size: min(3.5vw, 3.5em);
+  border-radius: min(2vw, 2em);
+  border: 1px solid #ccc;
+}
+
+.button {
+  font-size: min(3.3vw, 3.3em);
+  padding:  min(1.6vw, 1.6em);
+  border-radius: 4px;
+  border: none;
+  background-color: #28a745; /* Green color for the button */
+  color: #fff;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.inputHollow {
+  font-size: min(3.3vw, 3.3em);
+  padding:  min(1.6vw, 1.6em);
+  border-radius: 4px;
+  border: 2px solid #0070f3; 
+  background-color: transparent; 
+  width: 300px; 
+  margin-top: 10px;
+}
+
+
+/* ******************************** */
+
+
+
+
+
+
 
 .menuContainer{
   position: absolute;
