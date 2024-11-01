@@ -155,6 +155,15 @@ const GameplayPage = ({ params }) => {
     }
   }, [gameData?.currentTurn, roundGuessTotal, gameData?.challengeStatus, allPlayersRolled]); 
   
+
+  useEffect(() => {
+    // Verifica que los valores de `gameData` cumplan exactamente las condiciones deseadas
+    if (gameData?.roundGuessTotal === 0 && gameData?.devilDiceState === false) {
+      startFirstTurn(gameData?.players);
+    }
+  }, [gameData?.roundGuessTotal, gameData?.devilDiceState]); 
+  
+
   useEffect(() => {
     let timer;
     if (gameData?.currentTurn && (roundInProgress == true && allPlayersRolled == true ) && gameData?.challengeStatus === false   ) {
@@ -256,8 +265,9 @@ const GameplayPage = ({ params }) => {
           checkForWinner(data.players, data.currentRound);
         }
   
-        if (data.allPlayersRolled && !data.currentTurn) {
+        if ((data.allPlayersRolled && !data.currentTurn) || (data.allPlayersRolled && data.currentTurn == '') ) {
           startFirstTurn(data.players);
+          console.log("hello from... here? -----")
         }
 
         setPlayerGuess(data.previousPlayerGuess ? data.previousPlayerGuess: '');
@@ -283,6 +293,17 @@ const GameplayPage = ({ params }) => {
   // console.log("PlayersSymbolSum useffect 2", PlayersSymbolSum)
     return () => unsubscribe();
   }, [gameCode, devilFinished]);
+
+  useEffect(() => {
+    if (!gameData?.devilFinished == true) return; // Solo ejecuta si isEndRound es true
+
+    const timeoutId = setTimeout(() => {
+      endRound(playersChallenges);
+    }, 0); // 2000 milisegundos = 2 segundos
+
+    return () => clearTimeout(timeoutId);
+
+  }, [ gameData?.devilFinished]);
 
   useEffect(() => {
     if (!gameData?.devilFinished == true) return; // Solo ejecuta si isEndRound es true
@@ -403,6 +424,26 @@ const GameplayPage = ({ params }) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const startFirstTurn = (players) => {
   // Filtra los jugadores activos
   const activePlayers = Object.keys(players).filter(uid => players[uid]?.dice > 0);
@@ -434,9 +475,11 @@ const startFirstTurn = (players) => {
         let initialTurn;
 
         if (activeLosers.includes(forcedBeliever)) {
-          initialTurn = activeLosers.length > 0 ? forcedBeliever : activeLosers[0];
+          // initialTurn = activeLosers.length > 0 ? forcedBeliever : activeLosers[0];
+          initialTurn = forcedBeliever
         } else if (activeLosers.includes(forcedNotBeliever)) {
-          initialTurn = activeLosers.length > 0 ? forcedNotBeliever : activeLosers[0];
+          // initialTurn = activeLosers.length > 0 ? forcedNotBeliever : activeLosers[0];
+          initialTurn = forcedNotBeliever
         } else {
           // Si no hay ningún forzado en los perdedores activos, elige el primero de los perdedores activos o el primer jugador activo
           initialTurn = activeLosers.length > 0 ? activeLosers[0] : activePlayers[0];
@@ -504,7 +547,10 @@ const startFirstTurn = (players) => {
       showDirectionButton: true,
       forcedBeliever: '',
       forcedNotBeliever: '',
+      devilFinished: false,
     });
+
+
 
     setRollDiceStatus(true)
 
@@ -597,6 +643,9 @@ const startFirstTurn = (players) => {
         }).then(() => {
             // console.log("error user state update")
         });
+
+
+
 
 
   };
@@ -1067,6 +1116,7 @@ const endRound = (challenges) => {
   updates['roundInProgress'] = false;
   updates['currentRound'] = gameData.currentRound + 1;
   updates['roundGuessTotal'] = 0;
+  updates['currentTurn'] = '';
   updates['playersChallenges'] = {};
   // updates['forcedBeliever'] = '';
   updates['currentTurn'] = Object.keys(gameData?.players).filter(uid => gameData?.players[uid]?.dice > 0)[0];
@@ -1107,6 +1157,7 @@ const endRound = (challenges) => {
           checkForWinner(gameData.players, gameData.currentRound + 1);
         });
     }, 0); 
+
 
 };
 
@@ -1527,10 +1578,10 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                   <div key={playerKey} className={styles.jugadorContainerLeft}>
                     <div className={styles.cuadradoVerde}>
 
-                      {gameData?.currentRound > 1 && gameData?.allPlayersRolled == false ? 
+                      {gameData?.currentRound > 1 && gameData?.allPlayersRolled == false || gameData?.devilDiceState == true ? 
                           <>
 
-                          {gameData.players[playerKey].hasRolled == true ? 
+                          {gameData.players[playerKey].hasRolled == true && gameData?.devilDiceState == false ? 
                           <>
                             <p className={styles.rolledText}>rolled dices</p>
                           </> :
@@ -1710,10 +1761,10 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                   <div key={playerKey} className={styles.jugadorContainerRight}>
                     <div className={styles.cuadradoVerde}>
 
-                    {gameData?.currentRound > 1 && gameData?.allPlayersRolled == false ? 
+                    {gameData?.currentRound > 1 && gameData?.allPlayersRolled == false  || gameData?.devilDiceState == true ? 
                           <>
 
-                          {gameData.players[playerKey].hasRolled == true ? 
+                          {gameData.players[playerKey].hasRolled == true && gameData?.devilDiceState == false ? 
                           <>
                             <p className={styles.rolledText}>rolled dices</p>
                           </> :
