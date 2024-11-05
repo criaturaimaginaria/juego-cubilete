@@ -120,7 +120,7 @@ const GameplayPage = ({ params }) => {
 
   useEffect(() => {
 
-    if(gameData?.players[user?.uid].dice == 0){
+    if(gameData?.players[user?.uid].dice == 0 && gameData?.allPlayersRolled == true){
 
       update(ref(db, `games/${gameCode}/players/${user.uid}`), {
         // rollResults: updatedRollResults
@@ -558,21 +558,30 @@ const startFirstTurn = (players) => {
       const playerDiceCount = gameData.players[user.uid].dice;
       if (playerDiceCount > 0) {
         const rollResults = [];
-        for (let i = 0; i < playerDiceCount; i++) {
+
+        const adjustedDiceCount = gameData?.players[user?.uid]?.quintilla ? playerDiceCount - 1 : playerDiceCount;
+        for (let i = 0; i < adjustedDiceCount; i++) {
           rollResults.push(rollDice());
         }
+
+        // for (let i = 0; i < playerDiceCount; i++) {
+        //   rollResults.push(rollDice());
+        // }
 
         // if all symbols are the same
         const allEqual = rollResults.every(symbol => symbol === rollResults[0]);
         let newDiceCount = playerDiceCount;
+        let quintillaStatus = gameData?.players[user?.uid]?.quintilla == true ? true : false;
         if (allEqual && rollResults.length >= 5) {
           newDiceCount += 1; 
+          quintillaStatus = true; 
         }
         // Update the player's roll results and their roll status :D
         update(ref(db, `games/${gameCode}/players/${user.uid}`), {
           rollResults,
           dice: newDiceCount, 
-          hasRolled: true
+          hasRolled: true,
+          quintilla: quintillaStatus, 
         }).then(() => {
           // check if all players have rolled
           const updatedPlayers = {
@@ -1015,6 +1024,7 @@ const endRound = (challenges) => {
       // if (actualTotalDice > roundGuessTotal) {
       if (PlayersSymbolSumNum> symbolNumberGuess && gameData?.devilFinished === false) {
         updates[`players/${uid}/dice`] = player.dice - 1;
+        updates[`players/${uid}/quintilla`] = player.quintilla = false;
         messagePart += `*1* No creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y si había, habían: ${realSymbolNumberGuess} ${ symbolGuess} perdió un dado.`;
         losers.push(uid); 
       }
@@ -1035,6 +1045,7 @@ const endRound = (challenges) => {
       } 
       else if (gameData?.devilFinished === true && gameData?.previousPlayerGuess === gameData?.resultDevilDice ) {
         updates[`players/${uid}/dice`] = player.dice - 1;
+        updates[`players/${uid}/quintilla`] = player.quintilla = false;
         messagePart += `*3* disbelieve ${(symbolSumPreDevil)} y ${(realSymbolNumberGuess)} mantiene dado, devildice a favor`;
         // losers = losers.filter(loserUid => loserUid !== uid);
         losers.push(uid); 
@@ -1042,6 +1053,7 @@ const endRound = (challenges) => {
       } 
       else if (PlayersSymbolSumNum == symbolNumberGuess && gameData?.devilFinished === false) {
         updates[`players/${uid}/dice`] = player.dice - 1;
+        updates[`players/${uid}/quintilla`] = player.quintilla = false;
         messagePart += `*4*  creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y como habían: ${realSymbolNumberGuess} ${ symbolGuess} mantiene sus dados.`;
         losers = losers.filter(loserUid => loserUid !== uid);
       }
@@ -1054,6 +1066,7 @@ const endRound = (challenges) => {
       // if (actualTotalDice < roundGuessTotal) {
       if (PlayersSymbolSumNum < symbolNumberGuess && gameData?.devilFinished === false) {
         updates[`players/${uid}/dice`] = player.dice - 1;
+        updates[`players/${uid}/quintilla`] = player.quintilla = false;
         messagePart += `*6* Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero no, habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
         losers.push(uid); 
       }
@@ -1068,6 +1081,7 @@ const endRound = (challenges) => {
       // } 
       else if (gameData?.devilFinished === true && gameData?.previousPlayerGuess !== gameData?.resultDevilDice) {
         updates[`players/${uid}/dice`] = player.dice - 1;
+        updates[`players/${uid}/quintilla`] = player.quintilla = false;
         messagePart += `*7* believe ${(symbolSumPreDevil)} y ${(realSymbolNumberGuess)} mandiene dado, devildice a favor`;
         // losers = losers.filter(loserUid => loserUid !== uid);  
         losers.push(uid); 
@@ -1081,7 +1095,8 @@ const endRound = (challenges) => {
       else if (realSymbolNumberGuess  == symbolNumberGuess && gameData?.devilFinished === false) {
         // updates[`players/${uid}/dice`] = player.dice - 1;
         messagePart += `*9*Creyó que aún había mas de ${translateNumberToSymbol(roundGuessTotal)}, pero habían ${realSymbolNumberGuess} ${ symbolGuess} pierde un dado.`;
-        losers.push(uid); 
+        // losers.push(uid); 
+        losers = losers.filter(loserUid => loserUid !== uid);  
       } 
       else {
         messagePart += `*10* Creyó que aún había más que ${translateNumberToSymbol(roundGuessTotal)}, y si, como habían ${realSymbolNumberGuess} ${ symbolGuess}  mantiene sus dados.`;
@@ -1662,9 +1677,10 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                         style={{ color: playerKey == gameData?.currentTurn && gameData?.allPlayersRolled == true  ? 'orange' : '#fff' }}
                       >{gameData?.players[playerKey]?.name}</p>
                       <div className={styles.diceContainer2}>
-                         {Array.from({ length: gameData?.players[playerKey]?.dice }).map((_, index) => (
-                           <div key={index} className={styles.dice}></div>
-                        ))}  
+                      {Array.from({ length: gameData?.players[playerKey]?.quintilla ? gameData?.players[playerKey]?.dice - 1 : gameData?.players[playerKey]?.dice }).map((_, index) => (
+                          <div key={index} className={styles.dice}></div>
+                        ))}
+                        {gameData?.players[playerKey]?.quintilla && <p style={{color:'#fff'}}>+1</p>}   
                         {gameData?.players[playerKey]?.dice == 0 ? <div className={styles.diceTransparent}></div> : <></>}
 
                         {/* {gameData?.losersFromLastRound?.includes(playerKey) && gameData?.allPlayersRolled == false ? (
@@ -1842,9 +1858,13 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                        style={{ color: playerKey == gameData?.currentTurn && gameData?.allPlayersRolled == true ? 'orange' : '#fff' }}
                       >{gameData?.players[playerKey]?.name}</p>
                       <div className={styles.diceContainer2}>
-                         {Array.from({ length: gameData?.players[playerKey]?.dice }).map((_, index) => (
+                         {/* {Array.from({ length: gameData?.players[playerKey]?.dice }).map((_, index) => (
                           <div key={index} className={styles.dice}></div>
-                        ))}                     
+                        ))}    */}
+                        {Array.from({ length: gameData?.players[playerKey]?.quintilla ? gameData?.players[playerKey]?.dice - 1 : gameData?.players[playerKey]?.dice }).map((_, index) => (
+                          <div key={index} className={styles.dice}></div>
+                        ))}
+                        {gameData?.players[playerKey]?.quintilla && <p style={{color:'#fff'}}>+1</p>}                  
                       </div>
                       {/* {gameData?.players[playerKey]?.isCurrentTurn == true ? "YES" : "NO"} */}
                     </div>
