@@ -1055,7 +1055,8 @@ const endRound = (challenges) => {
         updates[`players/${uid}/dice`] = player.dice - 1;
         updates[`players/${uid}/quintilla`] = player.quintilla = false;
         messagePart += `*4*  creyó que haya mas de ${translateNumberToSymbol(roundGuessTotal)} y como habían: ${realSymbolNumberGuess} ${ symbolGuess} mantiene sus dados.`;
-        losers = losers.filter(loserUid => loserUid !== uid);
+        // losers = losers.filter(loserUid => loserUid !== uid);
+        losers.push(uid); 
       }
       else {
         messagePart += `*5* No creyó que hubiese mas de ${translateNumberToSymbol(roundGuessTotal)} y no había, habían: ${realSymbolNumberGuess} ${ symbolGuess}  mantiene sus dados. `;
@@ -1171,7 +1172,7 @@ const endRound = (challenges) => {
         .then(() => {
           checkForWinner(gameData.players, gameData.currentRound + 1);
         });
-    }, 0); 
+    }, 1500); 
 
 
 };
