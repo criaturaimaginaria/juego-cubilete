@@ -120,6 +120,19 @@ const GameplayPage = ({ params }) => {
 
   useEffect(() => {
 
+    if (
+      Object.values(gameData?.players || {}).every(player => player.dice === 0) &&
+      gameData?.allPlayersRolled === true
+    ) {
+      update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+        rollResults: null
+      }).then(() => {
+        console.log("error user state update");
+      });
+    }
+    
+
+
     if(gameData?.players[user?.uid].dice == 0 && gameData?.allPlayersRolled == true){
 
       update(ref(db, `games/${gameCode}/players/${user.uid}`), {
