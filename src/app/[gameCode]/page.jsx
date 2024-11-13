@@ -153,7 +153,12 @@ const GameplayPage = ({ params }) => {
         currentTurn: getNextTurn(direction),
       });
     }
-  }, [gameData?.playersChallenges,]); 
+  }, [gameData?.playersChallenges]); 
+
+
+
+
+
 
   console.log("user id", user.uid)
 
@@ -170,11 +175,14 @@ const GameplayPage = ({ params }) => {
   
 
   useEffect(() => {
+
+
+
     // Verifica que los valores de `gameData` cumplan exactamente las condiciones deseadas
     if (gameData?.roundGuessTotal === 0 && gameData?.devilDiceState === false) {
       startFirstTurn(gameData?.players);
     }
-  }, [gameData?.roundGuessTotal, gameData?.devilDiceState]); 
+  }, [gameData?.roundGuessTotal, gameData?.devilDiceState, gameData?.devilFinished, ]); 
   
 
   useEffect(() => {
@@ -457,6 +465,28 @@ const GameplayPage = ({ params }) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const startFirstTurn = (players) => {
   // Filtra los jugadores activos
   const activePlayers = Object.keys(players).filter(uid => players[uid]?.dice > 0);
@@ -671,6 +701,12 @@ const startFirstTurn = (players) => {
 
 
   };
+
+
+
+
+
+
 
 
 
@@ -1247,6 +1283,14 @@ const endRound = (challenges) => {
 //     }
 //     return activePlayers[nextTurnIndex];
 // };
+
+
+
+
+
+
+
+
 
 
 const getNextTurn = (direction) => {
@@ -2138,7 +2182,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
                               <div className={styles.challengeControlsContainer}>
                                 <div className={styles.areThere}>
-                                    <p>Are there <span>{translateNumberToSymbol(roundGuessTotal +1).split(' ')[0]}x</span></p><div className={styles.diceTemplate}>{translateNumberToSymbol(roundGuessTotal).split(' ')[1]} </div> <p> ?</p>
+                                    <p>Are there <span>{translateNumberToSymbol(roundGuessTotal).split(' ')[0]}x</span></p><div className={styles.diceTemplate}>{translateNumberToSymbol(roundGuessTotal).split(' ')[1]} </div> <p> ?</p>
                                 </div>
                                 
                                 <div className={styles.buttonChallengeThere}>
@@ -2168,7 +2212,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                                 <>
 
                                 <div className={styles.areThere}>
-                                    <p>Are there <span>{translateNumberToSymbol(roundGuessTotal +1).split(' ')[0]}x</span></p><div className={styles.diceTemplate}>{translateNumberToSymbol(roundGuessTotal).split(' ')[1]} </div> <p> ?</p>
+                                    <p>Are there <span>{translateNumberToSymbol(roundGuessTotal).split(' ')[0]}x</span></p><div className={styles.diceTemplate}>{translateNumberToSymbol(roundGuessTotal).split(' ')[1]} </div> <p> ?</p>
                                 </div>
                                 <div className={styles.buttonChallengeThere}>
                                   <button 
@@ -2191,7 +2235,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                                   {Object.keys(gameData?.playersChallenges || {}).includes(user?.uid) ?
                                   <>
                                     <div className={styles.areThere}>
-                                        <p>Are there <span>{translateNumberToSymbol(roundGuessTotal +1).split(' ')[0]}x</span></p><div className={styles.diceTemplate}>{translateNumberToSymbol(roundGuessTotal).split(' ')[1]} </div> <p> ?</p>
+                                        <p>Are there <span>{translateNumberToSymbol(roundGuessTotal ).split(' ')[0]}x</span></p><div className={styles.diceTemplate}>{translateNumberToSymbol(roundGuessTotal).split(' ')[1]} </div> <p> ?</p>
                                     </div>
                                     <div className={styles.buttonChallengeThere}>
                                       <button 
