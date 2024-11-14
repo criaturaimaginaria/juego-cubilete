@@ -177,8 +177,6 @@ const GameplayPage = ({ params }) => {
   useEffect(() => {
 
 
-
-    // Verifica que los valores de `gameData` cumplan exactamente las condiciones deseadas
     if (gameData?.roundGuessTotal === 0 && gameData?.devilDiceState === false) {
       startFirstTurn(gameData?.players);
     }
@@ -209,41 +207,84 @@ const GameplayPage = ({ params }) => {
     const newGuessTotal = getDiceValue(roundGuessTotal + 1, playerGuessQuantity);
     if (autoGuessTotal > roundGuessTotal) { 
 
+        if(gameData?.players?.[user?.uid].dice > 0 ){
+            // Update the player's status :D
+            update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+              lastGuess: autoGuessTotal , 
+              // lastGuess: "2 asss",
+            }).then(() => {
+                console.log("error user state update")
+            });
 
-        // Update the player's status :D
-        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
-          lastGuess: autoGuessTotal , 
-          // lastGuess: "2 asss",
-        }).then(() => {
-            console.log("error user state update")
-        });
+            const updates = {
+              roundGuessTotal: autoGuessTotal,
+              // previousPlayerGuess: playerGuess,
+              // previousPlayerGuessQuantity: playerGuessQuantity,
+              previousPlayerGuess: translateNumberToSymbol(roundGuessTotal +1).split(' ')[1],
+              previousPlayerGuessQuantity: translateNumberToSymbol(roundGuessTotal +1).split(' ')[0] ,
+              currentTurn: getNextTurn(direction)
+            };
+
+            setPreviousPlayerGuess(playerGuess);
+            // setPreviousPlayerGuessQuantity(playerGuessQuantity);
+            setRoundGuessTotal(autoGuessTotal);
+            update(ref(db, `games/${gameCode}`), { roundGuessTotal: autoGuessTotal, currentTurn: getNextTurn(direction) });
+            setPlayerGuess('');
+            setPlayerGuessQuantity(1);
+            setError('');
+      
+            update(ref(db, `games/${gameCode}`), updates)
+            .then(() => {
+              logPlayerMove(user.uid, translateNumberToSymbol(autoGuessTotal), undefined);
+              setPlayerGuess('');
+              setPlayerGuessQuantity(1);
+              setError(''); 
+            })
+            .catch(error => setError(`Error updating guess: ${error.message}`));
+            
+        }
+
+        else if(gameData?.players?.[user?.uid].dice == 0 ){
+          // Update the player's status :D
+          update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+            lastGuess: 0 , 
+            // lastGuess: "2 asss",
+          }).then(() => {
+              console.log("error user state update")
+          });
+
+          const updates = {
+            roundGuessTotal: 0,
+            // previousPlayerGuess: playerGuess,
+            // previousPlayerGuessQuantity: playerGuessQuantity,
+            previousPlayerGuess: 0,
+            previousPlayerGuessQuantity: 0 ,
+            currentTurn: getNextTurn(direction)
+          };
+
+          setPreviousPlayerGuess(playerGuess);
+          // setPreviousPlayerGuessQuantity(playerGuessQuantity);
+          setRoundGuessTotal(0);
+          update(ref(db, `games/${gameCode}`), { roundGuessTotal: 0, currentTurn: getNextTurn(direction) });
+          setPlayerGuess('');
+          setPlayerGuessQuantity(1);
+          setError('');
+    
+          update(ref(db, `games/${gameCode}`), updates)
+          .then(() => {
+            logPlayerMove(user.uid, translateNumberToSymbol(0), undefined);
+            setPlayerGuess('');
+            setPlayerGuessQuantity(0);
+            setError(''); 
+          })
+          .catch(error => setError(`Error updating guess: ${error.message}`));
+          
+      }
 
 
-      const updates = {
-        roundGuessTotal: autoGuessTotal,
-        // previousPlayerGuess: playerGuess,
-        // previousPlayerGuessQuantity: playerGuessQuantity,
-        previousPlayerGuess: translateNumberToSymbol(roundGuessTotal +1).split(' ')[1],
-        previousPlayerGuessQuantity: translateNumberToSymbol(roundGuessTotal +1).split(' ')[0] ,
-        currentTurn: getNextTurn(direction)
-      };
 
-      setPreviousPlayerGuess(playerGuess);
-      // setPreviousPlayerGuessQuantity(playerGuessQuantity);
-      setRoundGuessTotal(autoGuessTotal);
-      update(ref(db, `games/${gameCode}`), { roundGuessTotal: autoGuessTotal, currentTurn: getNextTurn(direction) });
-      setPlayerGuess('');
-      setPlayerGuessQuantity(1);
-      setError('');
 
-      update(ref(db, `games/${gameCode}`), updates)
-      .then(() => {
-        logPlayerMove(user.uid, translateNumberToSymbol(autoGuessTotal), undefined);
-        setPlayerGuess('');
-        setPlayerGuessQuantity(1);
-        setError(''); 
-      })
-      .catch(error => setError(`Error updating guess: ${error.message}`));
+
     }
   };
   
