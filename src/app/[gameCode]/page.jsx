@@ -278,12 +278,8 @@ const GameplayPage = ({ params }) => {
             setError(''); 
           })
           .catch(error => setError(`Error updating guess: ${error.message}`));
-          
+        
       }
-
-
-
-
 
     }
   };
@@ -529,33 +525,28 @@ const GameplayPage = ({ params }) => {
 
 
 const startFirstTurn = (players) => {
-  // Filtra los jugadores activos
+  // Filter active players
   const activePlayers = Object.keys(players).filter(uid => players[uid]?.dice > 0);
 
   if (activePlayers.length > 0) {
     const gameRef = ref(db, `games/${gameCode}`);
 
-    // Obtén los perdedores de la ronda anterior
     onValue(ref(db, `games/${gameCode}/losersFromLastRound`), (snapshot) => {
       const losers = snapshot.val() || [];
 
-      // Obtener forcedBeliever y forcedNotBeliever directamente desde Firebase
       const forcedBelieverRef = ref(db, `games/${gameCode}/forcedBeliever`);
       const forcedNotBelieverRef = ref(db, `games/${gameCode}/forcedNotBeliever`);
 
-      // Utiliza Promise.all para leer ambos valores antes de proceder
       Promise.all([
         new Promise((resolve) => onValue(forcedBelieverRef, (snapshot) => resolve(snapshot.val()))),
         new Promise((resolve) => onValue(forcedNotBelieverRef, (snapshot) => resolve(snapshot.val()))),
       ]).then(([forcedBeliever, forcedNotBeliever]) => {
-        // Filtra los perdedores que siguen activos
         const activeLosers = losers.filter(uid => players[uid] && players[uid].dice > 0);
 
         console.log("activeLosers---------", activeLosers);
         console.log("forcedBeliever---------", forcedBeliever);
         console.log("forcedNotBeliever---------", forcedNotBeliever);
 
-        // Chequea si alguno de los forzados (forcedBeliever o forcedNotBeliever) está en los perdedores activos
         let initialTurn;
 
         if (activeLosers.includes(forcedBeliever)) {
@@ -565,7 +556,6 @@ const startFirstTurn = (players) => {
           // initialTurn = activeLosers.length > 0 ? forcedNotBeliever : activeLosers[0];
           initialTurn = forcedNotBeliever
         } else {
-          // Si no hay ningún forzado en los perdedores activos, elige el primero de los perdedores activos o el primer jugador activo
           initialTurn = activeLosers.length > 0 ? activeLosers[0] : activePlayers[0];
         }
 
@@ -574,7 +564,6 @@ const startFirstTurn = (players) => {
           roundInProgress: true,
         };
 
-        // Actualiza los datos del juego
         update(gameRef, updates);
       });
     });
@@ -586,37 +575,6 @@ const startFirstTurn = (players) => {
 
 
 
-
-  // const startFirstTurn = (players) => {
-  //   // Filtra los jugadores activos
-  //   const activePlayers = Object.keys(players).filter(uid => players[uid]?.dice > 0);
-    
-  //   if (activePlayers.length > 0) {
-  //     const gameRef = ref(db, `games/${gameCode}`);
-      
-  //     // Obtén los perdedores de la ronda anterior
-  //     onValue(ref(db, `games/${gameCode}/losersFromLastRound`), (snapshot) => {
-  //       const losers = snapshot.val() || [];
-        
-  //       // Filtra los perdedores que siguen activos
-  //       const activeLosers = losers.filter(uid => players[uid] && players[uid].dice > 0);
-        
-  //       // Si hay perdedores activos, elige el primero de ellos, si no, elige otro jugador activo
-  //       const initialTurn = activeLosers.length > 0 ? activeLosers[0] : activePlayers[0];
-        
-  //       const updates = {
-  //         currentTurn: initialTurn,
-  //         roundInProgress: true,
-  //       };
-  
-  //       // Actualiza los datos del juego
-  //       update(gameRef, updates);
-  //     });
-  //   } else {
-  //     console.log('No hay jugadores activos con dados.');
-  //   }
-  // };
-  
 
 
   const handleRollDice = () => {
@@ -922,71 +880,6 @@ const startFirstTurn = (players) => {
 
 
 
-  // const handleChallenge = (believe) => {
-
-  //   if (secondToLastPlayerUID === null) {
-  //     console.warn("Esperando a que `secondToLastPlayerUID` esté disponible.");
-  //     return; 
-  //   }
-  
-  
-  //   const challengesRef = ref(db, `games/${gameCode}/playersChallenges`);
-  //   get(challengesRef).then((snapshot) => {
-  //     const challengesExist = snapshot.exists();
-  //     const newChallenges = { ...playersChallenges, [user.uid]: believe };
-  
-  //     const challengeUpdate = challengesExist 
-  //       ? update(challengesRef, { [user.uid]: believe }) 
-  //       : set(challengesRef, { [user.uid]: believe });
-  
-  //     challengeUpdate.then(() => {
-  //       setPlayersChallenges(newChallenges);
-  //       update(ref(db, `games/${gameCode}`), { challengeStatus: true });
-  
-  //       logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, believe);
-  //       const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
-  //       const allPlayersChallenged = activePlayers.every(uid => newChallenges[uid] !== undefined);
-  
-  //       update(ref(db, `games/${gameCode}`), { allPlayersChallenged });
-  
-  //       let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1];
-  //       let symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[0];
-  
-  //       if (allPlayersChallenged && symbolNumberGuess - PlayersSymbolSum[symbolGuess] === 1) {
-  //         setDevilDiceState(true);
-  //       } else if (allPlayersChallenged) {
-  //         endRound(newChallenges);
-  //         update(ref(db, `games/${gameCode}`), { challengeStatus: false });
-  //       }
-  //     });
-  //   });
-  
-  //   setShowGif(false);
-  //   getNextTurn(direction)
-  //   // Actualizar el turno
-  //   update(ref(db, `games/${gameCode}`), {
-  //     currentTurn: getNextTurn(direction),
-  //   });
-  // };
-  
-  
-  
-
-
-
-//   const SYMBOLS = ['9', '10', 'J', 'Q', 'K', 'A'];
-
-// const rollDice = () => {
-//   const randomIndex = Math.floor(Math.random() * SYMBOLS.length);
-//   return SYMBOLS[randomIndex];
-// };
-
-// const getDiceValue = (symbol, quantity) => {
-//   const baseValue = SYMBOLS.indexOf(symbol) + 1;
-//   return baseValue + (quantity - 1) * SYMBOLS.length;
-// };
-
-
 const devilDice = () => {
   const updates = {};
   let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1]
@@ -1041,59 +934,9 @@ update(ref(db, `games/${gameCode}`), {
 };
 
 
-//   const devilDice = () => {
-//     const updates = {};
-//     let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1]
-//     let symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[0]
-//     let realSymbolNumberGuess = PlayersSymbolSum[symbolGuess]
-
-//     let rollDevilDice = rollDice()
-//     setDevilDiceRollResult(rollDevilDice)
-
-
-//     update(ref(db, `games/${gameCode}`), {
-//       resultDevilDice: rollDevilDice,
-//       showDamnedDice: true
-//     });
-
-
-//     const challenges =  playersChallenges[user?.uid] 
-
-//     Object.entries(gameData.players).forEach(([uid, player]) => {
-
-//         // believe
-//        if (challenges === true) {
-//         // if (actualTotalDice < roundGuessTotal) {
-//         if (PlayersSymbolSum[symbolGuess]  < symbolNumberGuess && rollDevilDice == symbolGuess ) {
-//           updates[`symbolsSume/${symbolGuess}`] = PlayersSymbolSum[symbolGuess] + 1;
-//           updates['actualTotalDice'] = actualTotalDice + 6;
-//           setDevilSaved(true)
-//           console.log("devil dice te salvó")
-//         } else {
-//           console.log("nada ocurre, el dado maldito no te salvó")
-//         }
-//       }
-//     });
-//     // setDevilDiceState(false)
-    
-// setDevilFinished(true)
-
-//     update(ref(db, `games/${gameCode}`), updates)
-//       .then(() => {
-
-//       });
-
-//   };
-  
 
 
 
-
-
-
-
-
-  
 
 const endRound = (challenges) => {
   const updates = {};
@@ -1302,34 +1145,6 @@ const endRound = (challenges) => {
   
     return total;
   };
-
-
-
-//   const getNextTurn = () => {
-//     const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
-    
-//     if (activePlayers.length === 0) {
-//         return null; 
-//     }
-
-//     const currentTurnIndex = activePlayers.indexOf(gameData.currentTurn);
-//     let nextTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
-
-//     while (gameData.players[activePlayers[nextTurnIndex]].dice <= 0) {
-//         nextTurnIndex = (nextTurnIndex + 1) % activePlayers.length;
-
-//         if (nextTurnIndex === currentTurnIndex) {
-//             return null; 
-//         }
-//     }
-//     return activePlayers[nextTurnIndex];
-// };
-
-
-
-
-
-
 
 
 
