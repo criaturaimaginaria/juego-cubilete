@@ -174,6 +174,10 @@ const GameplayPage = ({ params }) => {
   }, [gameData?.currentTurn, roundGuessTotal, gameData?.challengeStatus, allPlayersRolled]); 
   
 
+
+
+
+  
   useEffect(() => {
 
 
@@ -1406,7 +1410,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                 <div>
                   <div className={styles.gameControls2}>
                     {/* {roundInProgress && allPlayersRolled && ( */}
-                    {roundInProgress && allPlayersRolled && userLastGuess !== roundGuessTotal && (
+                    {roundInProgress && gameData?.allPlayersRolled && userLastGuess !== roundGuessTotal && (
                       <>
                         {!Object.keys(playersChallenges).length ? (
                           <button 
@@ -1853,7 +1857,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
 
 
-                        {(!roundInProgress || !allPlayersRolled) && (gameData?.currentRound > 1) ? (
+                        {(!roundInProgress || !gameData?.allPlayersRolled) && (gameData?.currentRound > 1) ? (
                           <div className={styles.reRollDice}>
                             {/* {gameData?.losersFromLastRound} */}
 
@@ -2000,7 +2004,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
                                 
                     {/* {roundInProgress && allPlayersRolled && ( */}
-                    {roundInProgress && allPlayersRolled && userLastGuess !== roundGuessTotal && (
+                    {roundInProgress && gameData?.allPlayersRolled && userLastGuess !== roundGuessTotal && (
                       <>
                       {/* {console.log("playersChallenges).length", playersChallenges)} */}
                         {!Object.keys(playersChallenges).length ? (
@@ -2016,18 +2020,6 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                           </>
                         ) : (
                          
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
