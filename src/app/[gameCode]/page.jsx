@@ -10,14 +10,7 @@ import Link from 'next/link';
 
 const SYMBOLS = ['9', '10', 'J', 'Q', 'K', 'A'];
 
-const symbolsValues = {
-  '9': 1,
-  '10': 2,
-  'J': 3,
-  'Q': 4,
-  'K': 5,
-  'A': 6
-};
+
 
 const rollDice = () => {
   const randomIndex = Math.floor(Math.random() * SYMBOLS.length);
@@ -208,6 +201,12 @@ const GameplayPage = ({ params }) => {
 
 
   const handleAutoGuessSubmit = (autoGuessTotal) => {
+
+    update(ref(db, `games/${gameCode}`), { 
+      secondToLastPlayerUID: user?.uid ,
+      showDirectionButton: false,
+    });
+
     const newGuessTotal = getDiceValue(roundGuessTotal + 1, playerGuessQuantity);
     if (autoGuessTotal > roundGuessTotal) { 
 
@@ -2138,22 +2137,6 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
         {error && <p style={{ color: 'red' }}>{error}</p>} 
       </div>
 
-
-      {/* <h3>Moves History</h3>
-      <div className={styles.movesList}>
-          {moves.map((move, index) => {
-            const playerName = gameData?.players?.[move.uid]?.name || "Unknown Player";
-            return (
-              <div className={styles.movesContent} key={index}>
-                <p>
-                  Player: <b>{playerName} </b>
-                  move: <b>{move.guess} </b>
-                  and: <b>{move.believe === true ? 'believed' : move.believe === false ? 'disbelieved' : ''}</b>
-                </p>
-              </div>
-            );
-          })}
-      </div> */}
 
     </div>
   );
