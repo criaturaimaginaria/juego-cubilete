@@ -953,14 +953,11 @@ const startFirstTurn = (players) => {
   //     }
   //   }
   // };
-  
 
 
   const handleGuessSubmit = () => {
-    const gameRef = ref(db, `games/${gameCode}`);
-    const playerRef = ref(db, `games/${gameCode}/players/${user.uid}`);
-  
-    update(gameRef, { 
+    // Actualiza datos generales
+    update(ref(db, `games/${gameCode}`), { 
       secondToLastPlayerUID: user?.uid,
       showDirectionButton: false,
     });
@@ -968,106 +965,110 @@ const startFirstTurn = (players) => {
     if (playerGuess) {
       const newGuessTotal = getDiceValue(playerGuess, playerGuessQuantity);
   
+      // Valida que la nueva apuesta sea mayor al total actual
       if ((newGuessTotal > roundGuessTotal)) {
+        const gameRef = ref(db, `games/${gameCode}`);
+        const playerRef = ref(db, `games/${gameCode}/players/${user.uid}`);
+  
+        // Actualiza datos del jugador
         update(playerRef, {
           lastGuess: newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal,
         }).then(() => {
-          console.log("Error al actualizar el estado del usuario");
+          console.log("Player state updated successfully");
+        }).catch(() => {
+          console.error("Error updating player state");
         });
   
-        const updates = {
-          roundGuessTotal: newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal,
-          previousPlayerGuess: newGuessTotal == roundGuessTotal
-            ? translateNumberToSymbol(roundGuessTotalNew).split(' ')[1]
-            : playerGuess,
-          previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal
-            ? translateNumberToSymbol(roundGuessTotalNew).split(' ')[0]
-            : playerGuessQuantity,
-          currentTurn: getNextTurn(direction),
-        };
-  
-        setPreviousPlayerGuess(playerGuess);
-        setPreviousPlayerGuessQuantity(playerGuessQuantity);
-        setRoundGuessTotal(newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal);
-        setPlayerGuess('');
-        setPlayerGuessQuantity(1);
-        setError('');
-        setSymbolStatus(false);
-        setQuantityStatus(false);
-  
-        // Actualización mediante transacción
+        // Transacción para actualizar datos críticos de la partida
         runTransaction(gameRef, (gameData) => {
           if (!gameData) return null;
+  
+          const nextTurn = getNextTurn(direction);
+  
           return {
             ...gameData,
-            roundGuessTotal: updates.roundGuessTotal,
-            previousPlayerGuess: updates.previousPlayerGuess,
-            previousPlayerGuessQuantity: updates.previousPlayerGuessQuantity,
-            currentTurn: updates.currentTurn,
+            roundGuessTotal: newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal,
+            previousPlayerGuess: newGuessTotal == roundGuessTotal 
+              ? translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] 
+              : playerGuess,
+            previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal 
+              ? translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] 
+              : playerGuessQuantity,
+            currentTurn: nextTurn,
           };
         })
-          .then(() => {
-            logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
-            setPlayerGuess('');
-            setPlayerGuessQuantity(1);
-            setError('');
-          })
-          .catch((error) => {
-            setError(`Error al actualizar el turno: ${error.message}`);
-          });
+        .then(() => {
+          setPreviousPlayerGuess(playerGuess);
+          setPreviousPlayerGuessQuantity(playerGuessQuantity);
+          setRoundGuessTotal(newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal);
+          setPlayerGuess('');
+          setPlayerGuessQuantity(1);
+          setError('');
+          setSymbolStatus(false);
+          setQuantityStatus(false);
   
-      } else if (((roundGuessTotalNew > roundGuessTotal) && (newGuessTotal >= roundGuessTotal)) && (symbolChangeStatus !== true || quantityStatus !== true)) {
+          logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
+        })
+        .catch((error) => {
+          setError(`Error updating guess: ${error.message}`);
+        });
+  
+      } else if (
+        ((roundGuessTotalNew > roundGuessTotal) && (newGuessTotal >= roundGuessTotal)) && 
+        (symbolChangeStatus !== true || quantityStatus !== true)
+      ) {
+        const gameRef = ref(db, `games/${gameCode}`);
+        const playerRef = ref(db, `games/${gameCode}/players/${user.uid}`);
+  
+        // Actualiza datos del jugador
         update(playerRef, {
           lastGuess: newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal,
         }).then(() => {
-          console.log("Error al actualizar el estado del usuario");
+          console.log("Player state updated successfully");
+        }).catch(() => {
+          console.error("Error updating player state");
         });
   
-        const updates = {
-          roundGuessTotal: newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal,
-          previousPlayerGuess: newGuessTotal == roundGuessTotal
-            ? translateNumberToSymbol(roundGuessTotalNew).split(' ')[1]
-            : playerGuess,
-          previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal
-            ? translateNumberToSymbol(roundGuessTotalNew).split(' ')[0]
-            : playerGuessQuantity,
-          currentTurn: getNextTurn(direction),
-        };
-  
-        setPreviousPlayerGuess(playerGuess);
-        setPreviousPlayerGuessQuantity(playerGuessQuantity);
-        setRoundGuessTotal(newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal);
-        setPlayerGuess('');
-        setPlayerGuessQuantity(1);
-        setError('');
-        setSymbolStatus(false);
-        setQuantityStatus(false);
-  
-        // Actualización mediante transacción
+        // Transacción para actualizar datos críticos de la partida
         runTransaction(gameRef, (gameData) => {
           if (!gameData) return null;
+  
+          const nextTurn = getNextTurn(direction);
+  
           return {
             ...gameData,
-            roundGuessTotal: updates.roundGuessTotal,
-            previousPlayerGuess: updates.previousPlayerGuess,
-            previousPlayerGuessQuantity: updates.previousPlayerGuessQuantity,
-            currentTurn: updates.currentTurn,
+            roundGuessTotal: newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal,
+            previousPlayerGuess: newGuessTotal == roundGuessTotal 
+              ? translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] 
+              : playerGuess,
+            previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal 
+              ? translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] 
+              : playerGuessQuantity,
+            currentTurn: nextTurn,
           };
         })
-          .then(() => {
-            logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
-            setPlayerGuess('');
-            setPlayerGuessQuantity(1);
-            setError('');
-          })
-          .catch((error) => {
-            setError(`Error al actualizar el turno: ${error.message}`);
-          });
+        .then(() => {
+          setPreviousPlayerGuess(playerGuess);
+          setPreviousPlayerGuessQuantity(playerGuessQuantity);
+          setRoundGuessTotal(newGuessTotal == roundGuessTotal ? roundGuessTotalNew : newGuessTotal);
+          setPlayerGuess('');
+          setPlayerGuessQuantity(1);
+          setError('');
+          setSymbolStatus(false);
+          setQuantityStatus(false);
+  
+          logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
+        })
+        .catch((error) => {
+          setError(`Error updating guess: ${error.message}`);
+        });
+  
       } else {
         setError("Your guess must be greater than the previous guess.");
       }
     }
   };
+  
   
 
 
