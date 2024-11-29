@@ -99,17 +99,40 @@ const GameplayPage = ({ params }) => {
 
 
 
-  useEffect(() => {
-    // if (secondToLastPlayerUID === user?.uid && gameData?.challengeStatus === true ){
-      if (secondToLastPlayerUID === user?.uid){
-      // believe
-      handleChallenge(true)
+  // useEffect(() => {
+  //   // if (secondToLastPlayerUID === user?.uid && gameData?.challengeStatus === true ){
+  //     if (secondToLastPlayerUID === user?.uid){
+  //     // believe
+  //     handleChallenge(true)
 
-      update(ref(db, `games/${gameCode}`), { 
-        forcedBeliever: user?.uid
-       });
+  //     update(ref(db, `games/${gameCode}`), { 
+  //       forcedBeliever: user?.uid
+  //      });
+  //   }
+  // }, [gameData?.challengeStatus,]); 
+
+
+
+
+  useEffect(() => {
+    // Verificar si este jugador es el segundo al último y si debe forzarse a creer
+    if (secondToLastPlayerUID === user?.uid) {
+      handleChallenge(true);
+  
+      // Actualizar forcedBeliever de forma segura
+      const gameRef = ref(db, `games/${gameCode}`);
+      update(gameRef, {
+        forcedBeliever: user?.uid,
+      }).catch((error) => {
+        console.error("Error actualizando forcedBeliever:", error);
+      });
     }
-  }, [gameData?.challengeStatus,]); 
+  }, [gameData?.challengeStatus,]); // Asegúrate de incluir secondToLastPlayerUID como dependencia
+  
+
+
+
+
 
   useEffect(() => {
 
@@ -936,67 +959,150 @@ const startFirstTurn = (players) => {
 
 
 
-  const handleChallenge = (believe) => {
-    setRollDiceStatus(false)
-  if (secondToLastPlayerUID === null && moves.length >= 2 ) {
-    const secondToLastUID = moves.length >= 2 ? moves[moves.length - 1].uid : null;
-    update(ref(db, `games/${gameCode}`), { 
-      secondToLastPlayerUID: secondToLastUID,
-     });
-  }
+  // const handleChallenge = (believe) => {
+  //   setRollDiceStatus(false)
+  // if (secondToLastPlayerUID === null && moves.length >= 2 ) {
+  //   const secondToLastUID = moves.length >= 2 ? moves[moves.length - 1].uid : null;
+  //   update(ref(db, `games/${gameCode}`), { 
+  //     secondToLastPlayerUID: secondToLastUID,
+  //    });
+  // }
 
-  if (!gameData?.playersChallenges ) {
-    update(ref(db, `games/${gameCode}`), { 
-      forcedNotBeliever: user?.uid,
-     });
-  }
+  // if (!gameData?.playersChallenges ) {
+  //   update(ref(db, `games/${gameCode}`), { 
+  //     forcedNotBeliever: user?.uid,
+  //    });
+  // }
 
-    const newChallenges = { ...playersChallenges, [user.uid]: believe };
-    setPlayersChallenges(newChallenges)
-    // update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
-  update(ref(db, `games/${gameCode}`), { 
-    playersChallenges: newChallenges,
-    challengeStatus: true 
-  })
-      .then(() => {
-        // Verifica si todos los jugadores hicieron su elección
-        logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, believe);
-        const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
-        // si los jugadores activos hicieron su elección
-        const allPlayersChallenged = activePlayers.every(uid => newChallenges[uid] !== undefined);
+  //   const newChallenges = { ...playersChallenges, [user.uid]: believe };
+  //   setPlayersChallenges(newChallenges)
+  //   // update(ref(db, `games/${gameCode}`), { playersChallenges: newChallenges })
+  // update(ref(db, `games/${gameCode}`), { 
+  //   playersChallenges: newChallenges,
+  //   challengeStatus: true 
+  // })
+  //     .then(() => {
+  //       // Verifica si todos los jugadores hicieron su elección
+  //       logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, believe);
+  //       const activePlayers = Object.keys(gameData.players).filter(uid => gameData.players[uid].dice > 0);
+  //       // si los jugadores activos hicieron su elección
+  //       const allPlayersChallenged = activePlayers.every(uid => newChallenges[uid] !== undefined);
 
-        update(ref(db, `games/${gameCode}`), { allPlayersChallenged });
+  //       update(ref(db, `games/${gameCode}`), { allPlayersChallenged });
 
-        let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1]
-        let symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[0]
+  //       let symbolGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[1]
+  //       let symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(' ')[0]
 
-        // gameData?.actualTotalDice - gameData?.roundGuessTotal 
+  //       // gameData?.actualTotalDice - gameData?.roundGuessTotal 
 
-        if (allPlayersChallenged && symbolNumberGuess - PlayersSymbolSum[symbolGuess] === 1) {
-        // if (allPlayersChallenged && gameData?.actualTotalDice - gameData?.roundGuessTotal === 1) {
-          setDevilDiceState(true);
-          update(ref(db, `games/${gameCode}`), { 
-            devilDiceState: true 
-        });
-      } else if (allPlayersChallenged) {
-          endRound(newChallenges); 
-          update(ref(db, `games/${gameCode}`), { 
-              challengeStatus: false 
-          });
-      }
+  //       if (allPlayersChallenged && symbolNumberGuess - PlayersSymbolSum[symbolGuess] === 1) {
+  //       // if (allPlayersChallenged && gameData?.actualTotalDice - gameData?.roundGuessTotal === 1) {
+  //         setDevilDiceState(true);
+  //         update(ref(db, `games/${gameCode}`), { 
+  //           devilDiceState: true 
+  //       });
+  //     } else if (allPlayersChallenged) {
+  //         endRound(newChallenges); 
+  //         update(ref(db, `games/${gameCode}`), { 
+  //             challengeStatus: false 
+  //         });
+  //     }
 
-      });
-      setShowGif(false)
+  //     });
+  //     setShowGif(false)
 
-      if (Object.keys(gameData?.playersChallenges || {}).includes(user?.uid) === true && user?.uid === gameData?.currentTurn  && gameData?.allPlayersChallenged === false){
+  //     if (Object.keys(gameData?.playersChallenges || {}).includes(user?.uid) === true && user?.uid === gameData?.currentTurn  && gameData?.allPlayersChallenged === false){
       
-            update(ref(db, `games/${gameCode}`), { 
-        currentTurn: getNextTurn(direction)
-       });
-      }
+  //           update(ref(db, `games/${gameCode}`), { 
+  //       currentTurn: getNextTurn(direction)
+  //      });
+  //     }
 
 
+  // };
+
+
+
+  const handleChallenge = (believe) => {
+    setRollDiceStatus(false);
+  
+    // Referencia al nodo del juego en Firebase
+    const gameRef = ref(db, `games/${gameCode}`);
+  
+    // Actualizar secondToLastPlayerUID de forma segura
+    if (secondToLastPlayerUID === null && moves.length >= 2) {
+      const secondToLastUID = moves[moves.length - 1].uid;
+  
+      // Usar runTransaction para garantizar consistencia
+      runTransaction(gameRef, (currentGame) => {
+        if (!currentGame) return;
+        currentGame.secondToLastPlayerUID = secondToLastUID;
+        return currentGame;
+      }).catch((error) => {
+        console.error("Error actualizando secondToLastPlayerUID:", error);
+      });
+    }
+  
+    // Actualizar forcedNotBeliever si no hay challenges
+    if (!gameData?.playersChallenges) {
+      update(gameRef, {
+        forcedNotBeliever: user?.uid,
+      });
+    }
+  
+    const newChallenges = { ...playersChallenges, [user.uid]: believe };
+    setPlayersChallenges(newChallenges);
+  
+    update(gameRef, {
+      playersChallenges: newChallenges,
+      challengeStatus: true,
+    })
+      .then(() => {
+        logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, believe);
+  
+        const activePlayers = Object.keys(gameData.players).filter(
+          (uid) => gameData.players[uid].dice > 0
+        );
+        const allPlayersChallenged = activePlayers.every(
+          (uid) => newChallenges[uid] !== undefined
+        );
+  
+        update(gameRef, { allPlayersChallenged });
+  
+        const symbolGuess = translateNumberToSymbol(roundGuessTotal).split(" ")[1];
+        const symbolNumberGuess = translateNumberToSymbol(roundGuessTotal).split(
+          " "
+        )[0];
+  
+        if (
+          allPlayersChallenged &&
+          symbolNumberGuess - PlayersSymbolSum[symbolGuess] === 1
+        ) {
+          setDevilDiceState(true);
+          update(gameRef, { devilDiceState: true });
+        } else if (allPlayersChallenged) {
+          endRound(newChallenges);
+          update(gameRef, { challengeStatus: false });
+        }
+      })
+      .catch((error) => {
+        console.error("Error en handleChallenge:", error);
+      });
+  
+    setShowGif(false);
+  
+    if (
+      Object.keys(gameData?.playersChallenges || {}).includes(user?.uid) === true &&
+      user?.uid === gameData?.currentTurn &&
+      gameData?.allPlayersChallenged === false
+    ) {
+      update(gameRef, {
+        currentTurn: getNextTurn(direction),
+      });
+    }
   };
+
+
 
 
 
