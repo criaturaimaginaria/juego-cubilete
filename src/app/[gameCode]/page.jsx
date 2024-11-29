@@ -115,21 +115,19 @@ const GameplayPage = ({ params }) => {
 
 
   useEffect(() => {
-    // Verificar si este jugador es el segundo al último y si debe forzarse a creer
-    if (secondToLastPlayerUID === user?.uid) {
+    if (secondToLastPlayerUID === user?.uid && gameData?.challengeStatus === true) {
       handleChallenge(true);
   
-      // Actualizar forcedBeliever de forma segura
       const gameRef = ref(db, `games/${gameCode}`);
+  
       update(gameRef, {
         forcedBeliever: user?.uid,
       }).catch((error) => {
         console.error("Error actualizando forcedBeliever:", error);
       });
     }
-  }, [gameData?.challengeStatus,]); // Asegúrate de incluir secondToLastPlayerUID como dependencia
+  }, [gameData?.challengeStatus]); // Se incluyen todas las dependencias necesarias
   
-
 
 
 
