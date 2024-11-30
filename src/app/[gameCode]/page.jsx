@@ -99,34 +99,35 @@ const GameplayPage = ({ params }) => {
 
 
 
-  // useEffect(() => {
-  //   // if (secondToLastPlayerUID === user?.uid && gameData?.challengeStatus === true ){
-  //     if (secondToLastPlayerUID === user?.uid){
-  //     // believe
-  //     handleChallenge(true)
-
-  //     update(ref(db, `games/${gameCode}`), { 
-  //       forcedBeliever: user?.uid
-  //      });
-  //   }
-  // }, [gameData?.challengeStatus,]); 
-
-
-
-
   useEffect(() => {
-    if (secondToLastPlayerUID === user?.uid && gameData?.challengeStatus === true) {
-      handleChallenge(true);
-  
-      const gameRef = ref(db, `games/${gameCode}`);
-  
-      update(gameRef, {
-        forcedBeliever: user?.uid,
-      }).catch((error) => {
-        console.error("Error actualizando forcedBeliever:", error);
-      });
+    // if (secondToLastPlayerUID === user?.uid && gameData?.challengeStatus === true ){
+      // if (secondToLastPlayerUID === user?.uid){
+      if (gameData?.secondToLastPlayerUID === user?.uid){
+      // believe
+      handleChallenge(true)
+
+      update(ref(db, `games/${gameCode}`), { 
+        forcedBeliever: user?.uid
+       });
     }
-  }, [gameData?.challengeStatus]); // Se incluyen todas las dependencias necesarias
+  }, [gameData?.challengeStatus,]); 
+
+
+
+
+  // useEffect(() => {
+  //   if (secondToLastPlayerUID === user?.uid && gameData?.challengeStatus === true) {
+  //     handleChallenge(true);
+  
+  //     const gameRef = ref(db, `games/${gameCode}`);
+  
+  //     update(gameRef, {
+  //       forcedBeliever: user?.uid,
+  //     }).catch((error) => {
+  //       console.error("Error actualizando forcedBeliever:", error);
+  //     });
+  //   }
+  // }, [gameData?.challengeStatus]); 
   
 
 
