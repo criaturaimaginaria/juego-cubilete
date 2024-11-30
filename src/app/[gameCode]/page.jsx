@@ -730,11 +730,14 @@ const startFirstTurn = (players) => {
   // };
   
   
-  
-
   const handleRollDice = () => {
-    // Primero, actualiza el estado general del juego.
-    update(ref(db, `games/${gameCode}`), {
+    const gameRef = ref(db, `games/${gameCode}`);
+    const playerRef = ref(db, `games/${gameCode}/players/${user.uid}`);
+  
+    const newChallenges = playersChallenges || {};
+    
+    // Actualización inicial para reiniciar ciertos estados del juego
+    update(gameRef, {
       showDamnedDice: false,
       resultDevilDice: '',
       symbolsSume: [],
@@ -742,6 +745,8 @@ const startFirstTurn = (players) => {
       forcedBeliever: '',
       forcedNotBeliever: '',
       devilFinished: false,
+      previousPlayerGuessQuantity: 0,
+      previousPlayerGuess: '',
     });
   
     setRollDiceStatus(true);
@@ -751,78 +756,84 @@ const startFirstTurn = (players) => {
   
       if (playerDiceCount > 0) {
         const rollResults = [];
-        const adjustedDiceCount = gameData?.players[user?.uid]?.quintilla ? playerDiceCount - 1 : playerDiceCount;
+        const adjustedDiceCount = gameData?.players[user?.uid]?.quintilla
+          ? playerDiceCount - 1
+          : playerDiceCount;
   
+        // Generamos los resultados de los dados
         for (let i = 0; i < adjustedDiceCount; i++) {
           rollResults.push(rollDice());
         }
   
-        const allEqual = rollResults.every(symbol => symbol === rollResults[0]);
+        const allEqual = rollResults.every((symbol) => symbol === rollResults[0]);
         let newDiceCount = playerDiceCount;
-        let quintillaStatus = gameData?.players[user?.uid]?.quintilla == true ? true : false;
+        let quintillaStatus = gameData?.players[user?.uid]?.quintilla || false;
   
         if (allEqual && rollResults.length >= 5) {
           newDiceCount += 1;
           quintillaStatus = true;
         }
   
-        // Transacción para actualizar los resultados del jugador.
-        runTransaction(ref(db, `games/${gameCode}/players/${user.uid}`), currentPlayerData => {
-          if (currentPlayerData) {
-            currentPlayerData.rollResults = rollResults;
-            currentPlayerData.dice = newDiceCount;
-            currentPlayerData.hasRolled = true;
-            currentPlayerData.quintilla = quintillaStatus;
-          }
-          return currentPlayerData;
+        // Actualización del jugador con resultados de dados
+        update(playerRef, {
+          rollResults,
+          dice: newDiceCount,
+          hasRolled: true,
+          quintilla: quintillaStatus,
         }).then(() => {
-          // Verifica si todos los jugadores han tirado los dados.
-          runTransaction(ref(db, `games/${gameCode}`), currentGameData => {
-            if (currentGameData && currentGameData.players) {
-              const updatedPlayers = {
-                ...currentGameData.players,
-                [user.uid]: { ...currentGameData.players[user.uid], rollResults, hasRolled: true }
+          // Transacción para actualizar el estado global del juego
+          return runTransaction(gameRef, (currentGame) => {
+            if (!currentGame || !currentGame.players) return currentGame;
+  
+            const updatedPlayers = {
+              ...currentGame.players,
+              [user.uid]: {
+                ...currentGame.players[user.uid],
+                rollResults,
+                hasRolled: true,
+              },
+            };
+  
+            const allPlayersRolled = Object.values(updatedPlayers)
+              .filter((player) => player.dice > 0)
+              .every((player) => player.hasRolled);
+  
+            if (allPlayersRolled) {
+              const newTotalDice = calculateTotalDice(updatedPlayers);
+  
+              const symbolsSume = SYMBOLS.reduce((acc, symbol) => {
+                acc[symbol] = 0;
+                return acc;
+              }, {});
+  
+              Object.values(updatedPlayers).forEach((player) => {
+                if (player.rollResults) {
+                  player.rollResults.forEach((symbol) => {
+                    if (symbolsSume[symbol] !== undefined) {
+                      symbolsSume[symbol] += 1;
+                    }
+                  });
+                }
+              });
+  
+              return {
+                ...currentGame,
+                players: updatedPlayers,
+                actualTotalDice: newTotalDice,
+                symbolsSume,
+                roundInProgress: true,
+                allPlayersRolled: true,
+                challengeStatus: false,
               };
-  
-              const allPlayersRolled = Object.values(updatedPlayers)
-                .filter(player => player.dice > 0)
-                .every(player => player.hasRolled);
-  
-              if (allPlayersRolled) {
-                const newTotalDice = calculateTotalDice(updatedPlayers);
-  
-                const symbolsSume = SYMBOLS.reduce((acc, symbol) => {
-                  acc[symbol] = 0;
-                  return acc;
-                }, {});
-  
-                Object.values(updatedPlayers).forEach(player => {
-                  if (player.rollResults) {
-                    player.rollResults.forEach(symbol => {
-                      if (symbolsSume[symbol] !== undefined) {
-                        symbolsSume[symbol] += 1;
-                      }
-                    });
-                  }
-                });
-  
-                currentGameData.actualTotalDice = newTotalDice;
-                currentGameData.symbolsSume = symbolsSume;
-                currentGameData.roundInProgress = true;
-                currentGameData.allPlayersRolled = true;
-                currentGameData.challengeStatus = false;
-              }
             }
-            return currentGameData;
+  
+            return currentGame;
           });
         });
       } else {
-        // Transacción para marcar al jugador como que ya tiró los dados.
-        runTransaction(ref(db, `games/${gameCode}/players/${user.uid}`), currentPlayerData => {
-          if (currentPlayerData) {
-            currentPlayerData.hasRolled = true;
-          }
-          return currentPlayerData;
+        // Si el jugador no tiene dados
+        update(playerRef, {
+          hasRolled: true,
         });
       }
     }
@@ -837,195 +848,122 @@ const startFirstTurn = (players) => {
     setShowGif(true);
     setRoundResultsMessage('');
   
-    // Actualiza el estado de la base de datos con respecto a las apuestas anteriores.
+    // Actualizamos los valores de la apuesta anterior
     update(ref(db, `games/${gameCode}/`), {
       previousPlayerGuessQuantity: 0,
       previousPlayerGuess: '',
     });
   };
   
+  
 
 
-
-
-
-  // const handleGuessSubmit = () => {
-
-
-  //   // const secondToLastUID = moves.length >= 2 ? moves[moves.length - 1].uid : null;
-  //   update(ref(db, `games/${gameCode}`), { 
-  //     secondToLastPlayerUID: user?.uid ,
-  //     showDirectionButton: false,
-  //   });
-
-
-    
-  //   if (playerGuess) {
-  //     const newGuessTotal = getDiceValue(playerGuess, playerGuessQuantity);
-
-  //     // if ((newGuessTotal > roundGuessTotal)  || (roundGuessTotalNew > roundGuessTotal) ) { 
-  //       if ((newGuessTotal > roundGuessTotal) ) { 
-  //       update(ref(db, `games/${gameCode}/players/${user.uid}`), {
-  //         lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
-  //         // lastGuess: newGuessTotal, 
-
-  //       }).then(() => {
-  //           console.log("error user state update")
-  //       });
-
-  //       const updates = {
-  //         roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
-  //         // roundGuessTotal: newGuessTotal,
-  //         previousPlayerGuess: playerGuess,
-  //         previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
-  //         // previousPlayerGuessQuantity: playerGuessQuantity,
-  //         previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
-  //         currentTurn: getNextTurn(direction)
-  //       };
-
-  //       setPreviousPlayerGuess(playerGuess);
-  //       setPreviousPlayerGuessQuantity(playerGuessQuantity);
-  //       setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
-  //       // setRoundGuessTotal(newGuessTotal);
-  //       update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
-  //       setPlayerGuess('');
-  //       setPlayerGuessQuantity(1);
-  //       setError('');
-  //       setSymbolStatus(false)
-  //       setQuantityStatus(false)
-
-  //       update(ref(db, `games/${gameCode}`), updates)
-  //       .then(() => {
-  //         logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
-  //         setPlayerGuess('');
-  //         setPlayerGuessQuantity(1);
-  //         setError(''); 
-  //       })
-  //       .catch(error => setError(`Error updating guess: ${error.message}`));
-
-  //     } else if(((roundGuessTotalNew > roundGuessTotal) && (newGuessTotal >= roundGuessTotal )) && (symbolChangeStatus !== true || quantityStatus !== true)){
-
-
-
-  //       update(ref(db, `games/${gameCode}/players/${user.uid}`), {
-  //         lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
-  //         // lastGuess: newGuessTotal, 
-
-  //       }).then(() => {
-  //           console.log("error user state update")
-  //       });
-
-  //       const updates = {
-  //         roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
-  //         // roundGuessTotal: newGuessTotal,
-  //         previousPlayerGuess: playerGuess,
-  //         previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
-  //         // previousPlayerGuessQuantity: playerGuessQuantity,
-  //         previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
-  //         currentTurn: getNextTurn(direction)
-  //       };
-
-  //       setPreviousPlayerGuess(playerGuess);
-  //       setPreviousPlayerGuessQuantity(playerGuessQuantity);
-  //       setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
-  //       // setRoundGuessTotal(newGuessTotal);
-  //       update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
-  //       setPlayerGuess('');
-  //       setPlayerGuessQuantity(1);
-  //       setError('');
-  //       setSymbolStatus(false)
-  //       setQuantityStatus(false)
-
-  //       update(ref(db, `games/${gameCode}`), updates)
-  //       .then(() => {
-  //         logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
-  //         setPlayerGuess('');
-  //         setPlayerGuessQuantity(1);
-  //         setError(''); 
-  //       })
-  //       .catch(error => setError(`Error updating guess: ${error.message}`))
-
-  //     }
-  //     else {
-  //       setError("Your guess must be greater than the previous guess."); 
-  //     }
-  //   }
-  // };
 
 
 
   const handleGuessSubmit = () => {
-    const gameRef = ref(db, `games/${gameCode}`);
-  
-    // Actualizamos `secondToLastPlayerUID` y otros valores globales antes de continuar
-    update(gameRef, {
-      secondToLastPlayerUID: user?.uid,
+
+
+    // const secondToLastUID = moves.length >= 2 ? moves[moves.length - 1].uid : null;
+    update(ref(db, `games/${gameCode}`), { 
+      secondToLastPlayerUID: user?.uid ,
       showDirectionButton: false,
     });
-  
+
+
+    
     if (playerGuess) {
       const newGuessTotal = getDiceValue(playerGuess, playerGuessQuantity);
-  
-      // Manejamos las condiciones con una transacción para mayor seguridad
-      runTransaction(gameRef, (game) => {
-        if (game) {
-          if (
-            (newGuessTotal > game.roundGuessTotal) ||
-            ((game.roundGuessTotalNew > game.roundGuessTotal) &&
-              newGuessTotal >= game.roundGuessTotal &&
-              (symbolChangeStatus !== true || quantityStatus !== true))
-          ) {
-            const updatedGuessTotal =
-              newGuessTotal === game.roundGuessTotal
-                ? game.roundGuessTotalNew
-                : newGuessTotal;
-  
-            // Actualizamos datos globales
-            game.roundGuessTotal = updatedGuessTotal;
-            game.previousPlayerGuess =
-              updatedGuessTotal === game.roundGuessTotal
-                ? translateNumberToSymbol(game.roundGuessTotalNew).split(' ')[1]
-                : playerGuess;
-            game.previousPlayerGuessQuantity =
-              updatedGuessTotal === game.roundGuessTotal
-                ? translateNumberToSymbol(game.roundGuessTotalNew).split(' ')[0]
-                : playerGuessQuantity;
-            game.currentTurn = getNextTurn(direction);
-  
-            // Actualizamos datos del jugador
-            if (!game.players[user.uid]) {
-              game.players[user.uid] = {};
-            }
-            game.players[user.uid].lastGuess = updatedGuessTotal;
-          } else {
-            throw new Error(
-              'Your guess must be greater than the previous guess.'
-            );
-          }
-        }
-        return game;
-      })
+
+      // if ((newGuessTotal > roundGuessTotal)  || (roundGuessTotalNew > roundGuessTotal) ) { 
+        if ((newGuessTotal > roundGuessTotal) ) { 
+        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+          lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
+          // lastGuess: newGuessTotal, 
+
+        }).then(() => {
+            console.log("error user state update")
+        });
+
+        const updates = {
+          roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
+          // roundGuessTotal: newGuessTotal,
+          previousPlayerGuess: playerGuess,
+          previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
+          // previousPlayerGuessQuantity: playerGuessQuantity,
+          previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
+          currentTurn: getNextTurn(direction)
+        };
+
+        setPreviousPlayerGuess(playerGuess);
+        setPreviousPlayerGuessQuantity(playerGuessQuantity);
+        setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
+        // setRoundGuessTotal(newGuessTotal);
+        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
+        setPlayerGuess('');
+        setPlayerGuessQuantity(1);
+        setError('');
+        setSymbolStatus(false)
+        setQuantityStatus(false)
+
+        update(ref(db, `games/${gameCode}`), updates)
         .then(() => {
-          setPreviousPlayerGuess(playerGuess);
-          setPreviousPlayerGuessQuantity(playerGuessQuantity);
-          setRoundGuessTotal(
-            newGuessTotal === roundGuessTotal ? roundGuessTotalNew : newGuessTotal
-          );
+          logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
           setPlayerGuess('');
           setPlayerGuessQuantity(1);
-          setError('');
-          setSymbolStatus(false);
-          setQuantityStatus(false);
-  
-          // Log del movimiento del jugador
-          logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
+          setError(''); 
         })
-        .catch((error) => {
-          setError(`Error updating guess: ${error.message}`);
+        .catch(error => setError(`Error updating guess: ${error.message}`));
+
+      } else if(((roundGuessTotalNew > roundGuessTotal) && (newGuessTotal >= roundGuessTotal )) && (symbolChangeStatus !== true || quantityStatus !== true)){
+
+
+
+        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+          lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
+          // lastGuess: newGuessTotal, 
+
+        }).then(() => {
+            console.log("error user state update")
         });
+
+        const updates = {
+          roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
+          // roundGuessTotal: newGuessTotal,
+          previousPlayerGuess: playerGuess,
+          previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
+          // previousPlayerGuessQuantity: playerGuessQuantity,
+          previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
+          currentTurn: getNextTurn(direction)
+        };
+
+        setPreviousPlayerGuess(playerGuess);
+        setPreviousPlayerGuessQuantity(playerGuessQuantity);
+        setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
+        // setRoundGuessTotal(newGuessTotal);
+        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
+        setPlayerGuess('');
+        setPlayerGuessQuantity(1);
+        setError('');
+        setSymbolStatus(false)
+        setQuantityStatus(false)
+
+        update(ref(db, `games/${gameCode}`), updates)
+        .then(() => {
+          logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
+          setPlayerGuess('');
+          setPlayerGuessQuantity(1);
+          setError(''); 
+        })
+        .catch(error => setError(`Error updating guess: ${error.message}`))
+
+      }
+      else {
+        setError("Your guess must be greater than the previous guess."); 
+      }
     }
   };
-  
+
 
   
 
