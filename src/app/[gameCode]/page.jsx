@@ -728,6 +728,8 @@ const startFirstTurn = (players) => {
   //       });
 
   // };
+
+
   
   
   const handleRollDice = () => {
@@ -735,8 +737,6 @@ const startFirstTurn = (players) => {
     const playerRef = ref(db, `games/${gameCode}/players/${user.uid}`);
   
     const newChallenges = playersChallenges || {};
-    
-    // Actualización inicial para reiniciar ciertos estados del juego
     update(gameRef, {
       showDamnedDice: false,
       resultDevilDice: '',
@@ -753,37 +753,37 @@ const startFirstTurn = (players) => {
   
     if (gameData && gameData.players && gameData.players[user.uid]) {
       const playerDiceCount = gameData.players[user.uid].dice;
-  
       if (playerDiceCount > 0) {
         const rollResults = [];
-        const adjustedDiceCount = gameData?.players[user?.uid]?.quintilla
-          ? playerDiceCount - 1
-          : playerDiceCount;
+        const adjustedDiceCount = gameData?.players[user?.uid]?.quintilla ? playerDiceCount - 1 : playerDiceCount;
   
-        // Generamos los resultados de los dados
+        // Generar resultados de los dados
         for (let i = 0; i < adjustedDiceCount; i++) {
-          rollResults.push(rollDice());
+          rollResults.push(rollDice()); // Asegúrate de que rollDice() esté definido correctamente
         }
   
         const allEqual = rollResults.every((symbol) => symbol === rollResults[0]);
         let newDiceCount = playerDiceCount;
-        let quintillaStatus = gameData?.players[user?.uid]?.quintilla || false;
+        let quintillaStatus = gameData?.players[user?.uid]?.quintilla == true ? true : false;
   
         if (allEqual && rollResults.length >= 5) {
           newDiceCount += 1;
           quintillaStatus = true;
         }
   
-        // Actualización del jugador con resultados de dados
+        // Actualizar datos del jugador
         update(playerRef, {
           rollResults,
           dice: newDiceCount,
           hasRolled: true,
           quintilla: quintillaStatus,
         }).then(() => {
-          // Transacción para actualizar el estado global del juego
-          return runTransaction(gameRef, (currentGame) => {
-            if (!currentGame || !currentGame.players) return currentGame;
+          // Ejecutar transacción para manejar el estado global del juego
+          runTransaction(gameRef, (currentGame) => {
+            if (!currentGame || !currentGame.players) {
+              console.warn('Transacción: Datos del juego no disponibles.');
+              return currentGame; // Salir si no hay datos
+            }
   
             const updatedPlayers = {
               ...currentGame.players,
@@ -794,13 +794,15 @@ const startFirstTurn = (players) => {
               },
             };
   
+            // Verificar si todos los jugadores han lanzado
             const allPlayersRolled = Object.values(updatedPlayers)
-              .filter((player) => player.dice > 0)
+              .filter((player) => player.dice > 0) // Solo jugadores activos
               .every((player) => player.hasRolled);
   
             if (allPlayersRolled) {
               const newTotalDice = calculateTotalDice(updatedPlayers);
   
+              // Contar símbolos
               const symbolsSume = SYMBOLS.reduce((acc, symbol) => {
                 acc[symbol] = 0;
                 return acc;
@@ -827,11 +829,21 @@ const startFirstTurn = (players) => {
               };
             }
   
-            return currentGame;
-          });
+            // Si no todos los jugadores han lanzado
+            return {
+              ...currentGame,
+              players: updatedPlayers,
+            };
+          })
+            .then(() => {
+              console.log('Transacción completada correctamente.');
+            })
+            .catch((error) => {
+              console.error('Error en la transacción:', error);
+            });
         });
       } else {
-        // Si el jugador no tiene dados
+        // Si el jugador no tiene dados, solo marcar como "ha lanzado"
         update(playerRef, {
           hasRolled: true,
         });
@@ -842,16 +854,20 @@ const startFirstTurn = (players) => {
       setHasRolled(true);
     }
   
+    // Reproducir sonido de los dados
     const audio = new Audio('/images/dices_sound.mp3');
     audio.play();
   
+    // Mostrar animación del GIF
     setShowGif(true);
     setRoundResultsMessage('');
   
-    // Actualizamos los valores de la apuesta anterior
+    // Actualizar guess inicial
     update(ref(db, `games/${gameCode}/`), {
       previousPlayerGuessQuantity: 0,
       previousPlayerGuess: '',
+    }).then(() => {
+      console.log('Guess inicial reseteado.');
     });
   };
   
