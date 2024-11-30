@@ -851,108 +851,108 @@ const startFirstTurn = (players) => {
 
 
 
-  // const handleGuessSubmit = () => {
+  const handleGuessSubmit = () => {
 
 
-  //   // const secondToLastUID = moves.length >= 2 ? moves[moves.length - 1].uid : null;
-  //   update(ref(db, `games/${gameCode}`), { 
-  //     secondToLastPlayerUID: user?.uid ,
-  //     showDirectionButton: false,
-  //   });
+    // const secondToLastUID = moves.length >= 2 ? moves[moves.length - 1].uid : null;
+    update(ref(db, `games/${gameCode}`), { 
+      secondToLastPlayerUID: user?.uid ,
+      showDirectionButton: false,
+    });
 
 
     
-  //   if (playerGuess) {
-  //     const newGuessTotal = getDiceValue(playerGuess, playerGuessQuantity);
+    if (playerGuess) {
+      const newGuessTotal = getDiceValue(playerGuess, playerGuessQuantity);
 
-  //     // if ((newGuessTotal > roundGuessTotal)  || (roundGuessTotalNew > roundGuessTotal) ) { 
-  //       if ((newGuessTotal > roundGuessTotal) ) { 
-  //       update(ref(db, `games/${gameCode}/players/${user.uid}`), {
-  //         lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
-  //         // lastGuess: newGuessTotal, 
+      // if ((newGuessTotal > roundGuessTotal)  || (roundGuessTotalNew > roundGuessTotal) ) { 
+        if ((newGuessTotal > roundGuessTotal) ) { 
+        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+          lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
+          // lastGuess: newGuessTotal, 
 
-  //       }).then(() => {
-  //           console.log("error user state update")
-  //       });
+        }).then(() => {
+            console.log("error user state update")
+        });
 
-  //       const updates = {
-  //         roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
-  //         // roundGuessTotal: newGuessTotal,
-  //         previousPlayerGuess: playerGuess,
-  //         previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
-  //         // previousPlayerGuessQuantity: playerGuessQuantity,
-  //         previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
-  //         currentTurn: getNextTurn(direction)
-  //       };
+        const updates = {
+          roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
+          // roundGuessTotal: newGuessTotal,
+          previousPlayerGuess: playerGuess,
+          previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
+          // previousPlayerGuessQuantity: playerGuessQuantity,
+          previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
+          currentTurn: getNextTurn(direction)
+        };
 
-  //       setPreviousPlayerGuess(playerGuess);
-  //       setPreviousPlayerGuessQuantity(playerGuessQuantity);
-  //       setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
-  //       // setRoundGuessTotal(newGuessTotal);
-  //       update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
-  //       setPlayerGuess('');
-  //       setPlayerGuessQuantity(1);
-  //       setError('');
-  //       setSymbolStatus(false)
-  //       setQuantityStatus(false)
+        setPreviousPlayerGuess(playerGuess);
+        setPreviousPlayerGuessQuantity(playerGuessQuantity);
+        setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
+        // setRoundGuessTotal(newGuessTotal);
+        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
+        setPlayerGuess('');
+        setPlayerGuessQuantity(1);
+        setError('');
+        setSymbolStatus(false)
+        setQuantityStatus(false)
 
-  //       update(ref(db, `games/${gameCode}`), updates)
-  //       .then(() => {
-  //         logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
-  //         setPlayerGuess('');
-  //         setPlayerGuessQuantity(1);
-  //         setError(''); 
-  //       })
-  //       .catch(error => setError(`Error updating guess: ${error.message}`));
+        update(ref(db, `games/${gameCode}`), updates)
+        .then(() => {
+          logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
+          setPlayerGuess('');
+          setPlayerGuessQuantity(1);
+          setError(''); 
+        })
+        .catch(error => setError(`Error updating guess: ${error.message}`));
 
-  //     } else if(((roundGuessTotalNew > roundGuessTotal) && (newGuessTotal >= roundGuessTotal )) && (symbolChangeStatus !== true || quantityStatus !== true)){
+      } else if(((roundGuessTotalNew > roundGuessTotal) && (newGuessTotal >= roundGuessTotal )) && (symbolChangeStatus !== true || quantityStatus !== true)){
 
 
 
-  //       update(ref(db, `games/${gameCode}/players/${user.uid}`), {
-  //         lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
-  //         // lastGuess: newGuessTotal, 
+        update(ref(db, `games/${gameCode}/players/${user.uid}`), {
+          lastGuess: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal , 
+          // lastGuess: newGuessTotal, 
 
-  //       }).then(() => {
-  //           console.log("error user state update")
-  //       });
+        }).then(() => {
+            console.log("error user state update")
+        });
 
-  //       const updates = {
-  //         roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
-  //         // roundGuessTotal: newGuessTotal,
-  //         previousPlayerGuess: playerGuess,
-  //         previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
-  //         // previousPlayerGuessQuantity: playerGuessQuantity,
-  //         previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
-  //         currentTurn: getNextTurn(direction)
-  //       };
+        const updates = {
+          roundGuessTotal: newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal ,
+          // roundGuessTotal: newGuessTotal,
+          previousPlayerGuess: playerGuess,
+          previousPlayerGuess: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[1] : playerGuess ,
+          // previousPlayerGuessQuantity: playerGuessQuantity,
+          previousPlayerGuessQuantity: newGuessTotal == roundGuessTotal?  translateNumberToSymbol(roundGuessTotalNew).split(' ')[0] : playerGuessQuantity ,
+          currentTurn: getNextTurn(direction)
+        };
 
-  //       setPreviousPlayerGuess(playerGuess);
-  //       setPreviousPlayerGuessQuantity(playerGuessQuantity);
-  //       setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
-  //       // setRoundGuessTotal(newGuessTotal);
-  //       update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
-  //       setPlayerGuess('');
-  //       setPlayerGuessQuantity(1);
-  //       setError('');
-  //       setSymbolStatus(false)
-  //       setQuantityStatus(false)
+        setPreviousPlayerGuess(playerGuess);
+        setPreviousPlayerGuessQuantity(playerGuessQuantity);
+        setRoundGuessTotal( newGuessTotal == roundGuessTotal?  roundGuessTotalNew : newGuessTotal );
+        // setRoundGuessTotal(newGuessTotal);
+        update(ref(db, `games/${gameCode}`), { roundGuessTotal: newGuessTotal, currentTurn: getNextTurn(direction) });
+        setPlayerGuess('');
+        setPlayerGuessQuantity(1);
+        setError('');
+        setSymbolStatus(false)
+        setQuantityStatus(false)
 
-  //       update(ref(db, `games/${gameCode}`), updates)
-  //       .then(() => {
-  //         logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
-  //         setPlayerGuess('');
-  //         setPlayerGuessQuantity(1);
-  //         setError(''); 
-  //       })
-  //       .catch(error => setError(`Error updating guess: ${error.message}`))
+        update(ref(db, `games/${gameCode}`), updates)
+        .then(() => {
+          logPlayerMove(user.uid, `${playerGuessQuantity} ${playerGuess}`, undefined);
+          setPlayerGuess('');
+          setPlayerGuessQuantity(1);
+          setError(''); 
+        })
+        .catch(error => setError(`Error updating guess: ${error.message}`))
 
-  //     }
-  //     else {
-  //       setError("Your guess must be greater than the previous guess."); 
-  //     }
-  //   }
-  // };
+      }
+      else {
+        setError("Your guess must be greater than the previous guess."); 
+      }
+    }
+  };
 
 
   
