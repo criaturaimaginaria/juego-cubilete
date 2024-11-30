@@ -602,11 +602,17 @@ const startFirstTurn = (players) => {
 
 
 
+
+
+
+
+
   // const handleRollDice = () => {
-
-  //   // const newChallenges = playersChallenges || {};
-
-  //   update(ref(db, `games/${gameCode}`), {
+  //   const gameRef = ref(db, `games/${gameCode}`);
+  //   const playerRef = ref(db, `games/${gameCode}/players/${user.uid}`);
+  
+  //   const newChallenges = playersChallenges || {};
+  //   update(gameRef, {
   //     // playersChallenges: newChallenges,
   //     showDamnedDice: false,
   //     resultDevilDice: '',
@@ -615,102 +621,103 @@ const startFirstTurn = (players) => {
   //     forcedBeliever: '',
   //     forcedNotBeliever: '',
   //     devilFinished: false,
+  //     previousPlayerGuessQuantity: 0,
+  //     previousPlayerGuess: '',
   //   });
-
-
-
-  //   setRollDiceStatus(true)
-
+  
+  //   setRollDiceStatus(true);
+  
   //   if (gameData && gameData.players && gameData.players[user.uid]) {
   //     const playerDiceCount = gameData.players[user.uid].dice;
   //     if (playerDiceCount > 0) {
   //       const rollResults = [];
-
   //       const adjustedDiceCount = gameData?.players[user?.uid]?.quintilla ? playerDiceCount - 1 : playerDiceCount;
-  //       for (let i = 0; i < adjustedDiceCount; i++) {
-  //         rollResults.push(rollDice());
-  //       }
-
-  //       // for (let i = 0; i < playerDiceCount; i++) {
+  
+  //       // for (let i = 0; i < adjustedDiceCount; i++) {
   //       //   rollResults.push(rollDice());
   //       // }
-
-  //       // if all symbols are the same
-  //       const allEqual = rollResults.every(symbol => symbol === rollResults[0]);
+  
+  //       const allEqual = rollResults.every((symbol) => symbol === rollResults[0]);
   //       let newDiceCount = playerDiceCount;
   //       let quintillaStatus = gameData?.players[user?.uid]?.quintilla == true ? true : false;
-  //       if (allEqual && rollResults.length >= 5) {
-  //         newDiceCount += 1; 
-  //         quintillaStatus = true; 
-  //       }
-  //       // Update the player's roll results and their roll status :D
-  //       update(ref(db, `games/${gameCode}/players/${user.uid}`), {
-  //         rollResults,
-  //         dice: newDiceCount, 
-  //         hasRolled: true,
-  //         quintilla: quintillaStatus, 
-  //       }).then(() => {
-  //         // check if all players have rolled
-  //         const updatedPlayers = {
-  //           ...gameData.players,
-  //           [user.uid]: { ...gameData.players[user.uid], rollResults, hasRolled: true }
-  //         };
   
-  //         const allPlayersRolled = Object.values(updatedPlayers).filter(player => player.dice > 0).every(player => player.hasRolled);
-
-  //         if (allPlayersRolled) {
-  //           const newTotalDice = calculateTotalDice(updatedPlayers);
-
-  //           const symbolsSume = SYMBOLS.reduce((acc, symbol) => {
-  //             acc[symbol] = 0;
-  //             return acc;
-  //           }, {});
-
-  //                     // Sumar los símbolos de cada jugador al objeto symbolsSume
-  //         Object.values(updatedPlayers).forEach(player => {
-  //           if (player.rollResults) {
-  //             player.rollResults.forEach(symbol => {
-  //               if (symbolsSume[symbol] !== undefined) {
-  //                 symbolsSume[symbol] += 1;
+  //       if (allEqual && rollResults.length >= 5) {
+  //         newDiceCount += 1;
+  //         quintillaStatus = true;
+  //       }
+  
+  //       update(playerRef, {
+  //         rollResults,
+  //         dice: newDiceCount,
+  //         hasRolled: true,
+  //         quintilla: quintillaStatus,
+  //       }).then(() => {
+  //         // transactions
+  //         runTransaction(gameRef, (currentGame) => {
+  //           if (!currentGame || !currentGame.players) return currentGame;
+  
+  //           const updatedPlayers = {
+  //             ...currentGame.players,
+  //             [user.uid]: {
+  //               ...currentGame.players[user.uid],
+  //               rollResults,
+  //               hasRolled: true,
+  //             },
+  //           };
+  
+  //           const allPlayersRolled = Object.values(updatedPlayers)
+  //             .filter((player) => player.dice > 0)
+  //             .every((player) => player.hasRolled);
+  
+  //           if (allPlayersRolled) {
+  //             const newTotalDice = calculateTotalDice(updatedPlayers);
+  
+  //             const symbolsSume = SYMBOLS.reduce((acc, symbol) => {
+  //               acc[symbol] = 0;
+  //               return acc;
+  //             }, {});
+  
+  //             Object.values(updatedPlayers).forEach((player) => {
+  //               if (player.rollResults) {
+  //                 player.rollResults.forEach((symbol) => {
+  //                   if (symbolsSume[symbol] !== undefined) {
+  //                     symbolsSume[symbol] += 1;
+  //                   }
+  //                 });
   //               }
   //             });
-  //           }
-  //         });
-
-
-
-
-
-
-
   
-  //           update(ref(db, `games/${gameCode}`), {
-  //             actualTotalDice: newTotalDice,
-  //             symbolsSume, // Se añade symbolsSume a la base de datos
-  //             roundInProgress: true,
-  //             allPlayersRolled: true ,
-  //             challengeStatus: false 
-  //           });
-  //         }
+  //             return {
+  //               ...currentGame,
+  //               players: updatedPlayers,
+  //               actualTotalDice: newTotalDice,
+  //               symbolsSume,
+  //               roundInProgress: true,
+  //               allPlayersRolled: true,
+  //               challengeStatus: false,
+  //             };
+  //           }
+  
+  //           return currentGame;
+  //         });
   //       });
-  //     }else {
-  //       // If the player has no dice then they are marked as having rolled anyways :p
-  //       update(ref(db, `games/${gameCode}/players/${user.uid}`), {
-  //         hasRolled: true
+  //     } else {
+  //       // if no dices
+  //       update(playerRef, {
+  //         hasRolled: true,
   //       });
   //     }
   //   }
-
+  
   //   if (!hasRolled) {
   //     setHasRolled(true);
   //   }
-
+  
   //   const audio = new Audio('/images/dices_sound.mp3');
   //   audio.play();
-
-  //   setShowGif(true); 
-
-  // setRoundResultsMessage('');
+  
+  //   setShowGif(true);
+  //   setRoundResultsMessage('');
 
   //       // Update the player's status :D
   //       update(ref(db, `games/${gameCode}/`), {
@@ -720,23 +727,14 @@ const startFirstTurn = (players) => {
   //           // console.log("error user state update")
   //       });
 
-
-
-
-
   // };
-
-
-
-
+  
+  
+  
 
   const handleRollDice = () => {
-    const gameRef = ref(db, `games/${gameCode}`);
-    const playerRef = ref(db, `games/${gameCode}/players/${user.uid}`);
-  
-    const newChallenges = playersChallenges || {};
-    update(gameRef, {
-      // playersChallenges: newChallenges,
+    // Primero, actualiza el estado general del juego.
+    update(ref(db, `games/${gameCode}`), {
       showDamnedDice: false,
       resultDevilDice: '',
       symbolsSume: [],
@@ -744,23 +742,22 @@ const startFirstTurn = (players) => {
       forcedBeliever: '',
       forcedNotBeliever: '',
       devilFinished: false,
-      previousPlayerGuessQuantity: 0,
-      previousPlayerGuess: '',
     });
   
     setRollDiceStatus(true);
   
     if (gameData && gameData.players && gameData.players[user.uid]) {
       const playerDiceCount = gameData.players[user.uid].dice;
+  
       if (playerDiceCount > 0) {
         const rollResults = [];
         const adjustedDiceCount = gameData?.players[user?.uid]?.quintilla ? playerDiceCount - 1 : playerDiceCount;
   
-        // for (let i = 0; i < adjustedDiceCount; i++) {
-        //   rollResults.push(rollDice());
-        // }
+        for (let i = 0; i < adjustedDiceCount; i++) {
+          rollResults.push(rollDice());
+        }
   
-        const allEqual = rollResults.every((symbol) => symbol === rollResults[0]);
+        const allEqual = rollResults.every(symbol => symbol === rollResults[0]);
         let newDiceCount = playerDiceCount;
         let quintillaStatus = gameData?.players[user?.uid]?.quintilla == true ? true : false;
   
@@ -769,65 +766,63 @@ const startFirstTurn = (players) => {
           quintillaStatus = true;
         }
   
-        update(playerRef, {
-          rollResults,
-          dice: newDiceCount,
-          hasRolled: true,
-          quintilla: quintillaStatus,
+        // Transacción para actualizar los resultados del jugador.
+        runTransaction(ref(db, `games/${gameCode}/players/${user.uid}`), currentPlayerData => {
+          if (currentPlayerData) {
+            currentPlayerData.rollResults = rollResults;
+            currentPlayerData.dice = newDiceCount;
+            currentPlayerData.hasRolled = true;
+            currentPlayerData.quintilla = quintillaStatus;
+          }
+          return currentPlayerData;
         }).then(() => {
-          // transactions
-          runTransaction(gameRef, (currentGame) => {
-            if (!currentGame || !currentGame.players) return currentGame;
-  
-            const updatedPlayers = {
-              ...currentGame.players,
-              [user.uid]: {
-                ...currentGame.players[user.uid],
-                rollResults,
-                hasRolled: true,
-              },
-            };
-  
-            const allPlayersRolled = Object.values(updatedPlayers)
-              .filter((player) => player.dice > 0)
-              .every((player) => player.hasRolled);
-  
-            if (allPlayersRolled) {
-              const newTotalDice = calculateTotalDice(updatedPlayers);
-  
-              const symbolsSume = SYMBOLS.reduce((acc, symbol) => {
-                acc[symbol] = 0;
-                return acc;
-              }, {});
-  
-              Object.values(updatedPlayers).forEach((player) => {
-                if (player.rollResults) {
-                  player.rollResults.forEach((symbol) => {
-                    if (symbolsSume[symbol] !== undefined) {
-                      symbolsSume[symbol] += 1;
-                    }
-                  });
-                }
-              });
-  
-              return {
-                ...currentGame,
-                players: updatedPlayers,
-                actualTotalDice: newTotalDice,
-                symbolsSume,
-                roundInProgress: true,
-                allPlayersRolled: true,
-                challengeStatus: false,
+          // Verifica si todos los jugadores han tirado los dados.
+          runTransaction(ref(db, `games/${gameCode}`), currentGameData => {
+            if (currentGameData && currentGameData.players) {
+              const updatedPlayers = {
+                ...currentGameData.players,
+                [user.uid]: { ...currentGameData.players[user.uid], rollResults, hasRolled: true }
               };
-            }
   
-            return currentGame;
+              const allPlayersRolled = Object.values(updatedPlayers)
+                .filter(player => player.dice > 0)
+                .every(player => player.hasRolled);
+  
+              if (allPlayersRolled) {
+                const newTotalDice = calculateTotalDice(updatedPlayers);
+  
+                const symbolsSume = SYMBOLS.reduce((acc, symbol) => {
+                  acc[symbol] = 0;
+                  return acc;
+                }, {});
+  
+                Object.values(updatedPlayers).forEach(player => {
+                  if (player.rollResults) {
+                    player.rollResults.forEach(symbol => {
+                      if (symbolsSume[symbol] !== undefined) {
+                        symbolsSume[symbol] += 1;
+                      }
+                    });
+                  }
+                });
+  
+                currentGameData.actualTotalDice = newTotalDice;
+                currentGameData.symbolsSume = symbolsSume;
+                currentGameData.roundInProgress = true;
+                currentGameData.allPlayersRolled = true;
+                currentGameData.challengeStatus = false;
+              }
+            }
+            return currentGameData;
           });
         });
       } else {
-        // if no dices
-        update(playerRef, {
-          hasRolled: true,
+        // Transacción para marcar al jugador como que ya tiró los dados.
+        runTransaction(ref(db, `games/${gameCode}/players/${user.uid}`), currentPlayerData => {
+          if (currentPlayerData) {
+            currentPlayerData.hasRolled = true;
+          }
+          return currentPlayerData;
         });
       }
     }
@@ -841,21 +836,14 @@ const startFirstTurn = (players) => {
   
     setShowGif(true);
     setRoundResultsMessage('');
-
-        // Update the player's status :D
-        update(ref(db, `games/${gameCode}/`), {
-          previousPlayerGuessQuantity: 0 , 
-          previousPlayerGuess:'',
-        }).then(() => {
-            // console.log("error user state update")
-        });
-
+  
+    // Actualiza el estado de la base de datos con respecto a las apuestas anteriores.
+    update(ref(db, `games/${gameCode}/`), {
+      previousPlayerGuessQuantity: 0,
+      previousPlayerGuess: '',
+    });
   };
   
-  
-  
-
-
 
 
 
