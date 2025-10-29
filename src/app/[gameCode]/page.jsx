@@ -8,6 +8,22 @@ import { useAuth } from '../../contexts/AuthProvider';
 import styles from './page.module.css'
 import Link from 'next/link';
 
+// import img9 from '../../../public/assets/9.png';
+// import img10 from '../../../public/assets/10.png';
+// import imgA from '../../../public/assets/as.png';
+// import imgJ from '../../../public/assets/j.png';
+// import imgQ from '../../../public/assets/reina.png';
+// import imgK from '../../../public/assets/rey.png';
+
+const imageMap = {
+  'K': '/assets/rey.png',
+  'Q': '/assets/reina.png',
+  'J': '/assets/j.png',
+  '10': '/assets/10.png',
+  '9': '/assets/9.png',
+  'A': '/assets/as.png'
+};
+
 const SYMBOLS = ['9', '10', 'J', 'Q', 'K', 'A'];
 
 
@@ -175,7 +191,7 @@ const GameplayPage = ({ params }) => {
 
 
 
-  console.log("user id", user.uid)
+  // console.log("user id", user.uid)
 
   useEffect(() => {
     if (gameData?.currentTurn === user?.uid && (roundInProgress == true && allPlayersRolled == true ) && gameData?.challengeStatus === false  ) {
@@ -350,7 +366,7 @@ const GameplayPage = ({ params }) => {
   
         if ((data.allPlayersRolled && !data.currentTurn) || (data.allPlayersRolled && data.currentTurn == '') ) {
           startFirstTurn(data.players);
-          console.log("hello from... here? -----")
+          // console.log("hello from... here? -----")
         }
 
         setPlayerGuess(data.previousPlayerGuess ? data.previousPlayerGuess: '');
@@ -568,9 +584,9 @@ const startFirstTurn = (players) => {
       ]).then(([forcedBeliever, forcedNotBeliever]) => {
         const activeLosers = losers.filter(uid => players[uid] && players[uid].dice > 0);
 
-        console.log("activeLosers---------", activeLosers);
-        console.log("forcedBeliever---------", forcedBeliever);
-        console.log("forcedNotBeliever---------", forcedNotBeliever);
+        // console.log("activeLosers---------", activeLosers);
+        // console.log("forcedBeliever---------", forcedBeliever);
+        // console.log("forcedNotBeliever---------", forcedNotBeliever);
 
         let initialTurn;
 
@@ -1599,7 +1615,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
             <div onClick={() => menuPopUpFunction()}
              className={styles.menuContainer}>
-              <button >Menu</button>
+              <button className={`${styles.btn} ${styles.btnRaised} ${styles.btnRaised1}`}>Menu</button>
             </div>
 
             <div className={styles.countdownContainer}>
@@ -1607,7 +1623,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                 <div
                   className={styles.filler}
                   style={{
-                    background: `conic-gradient(#fff 0% calc(${(timeLeft / 40) * 100}%), ${timeLeft <= 7 ? '#d10000' : '#000'} calc(${(timeLeft / 40) * 100}%))`,
+                    background: `conic-gradient(#fff 0% calc(${(timeLeft / 40) * 100}%), ${timeLeft <= 7 ? '##610909' : '#000'} calc(${(timeLeft / 40) * 100}%))`,
                     transition: 'background 1s ease-in-out', // Transición suave
                   }}
                 />
@@ -1787,7 +1803,17 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                                     {gameData?.players[playerKey]?.lastGuess > 0 ? 
                                       <>
                                       <div className={styles.areThereHead}>
-                                        <p><span>{translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[0]}x</span></p><div className={styles.diceTemplateHead}>{translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[1]} </div> <p> </p>
+                                        <p>
+                                          <span>{translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[0]}
+                                            x
+                                          </span>
+                                        </p>
+                                        <div className={styles.diceTemplateHead}>
+                                          {translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[1]} 
+                                        </div> 
+                                        <p> 
+                                          
+                                        </p>
                                       </div>
                                       </> :
                                       <>
@@ -1869,11 +1895,29 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
                 <div className={styles.tableCenterContent}>
                   <p>Last</p>
+
+
+
+
+
+
+
+
+
+
+
+
                   {previousPlayerGuess && (
                     <div className={styles.lastGuessContainer}>
                       <b>{gameData?.previousPlayerGuess === gameData?.resultDevilDice ? 
                       previousPlayerGuessQuantity -1 : previousPlayerGuessQuantity}x</b>
-                      <div className={styles.lastGuessDice}>{previousPlayerGuess}</div>
+                      <div className={styles.lastGuessDice}>
+                        {/* {previousPlayerGuess} */}
+                          <img 
+                            src={imageMap[previousPlayerGuess]}
+                            className={styles.lastGuessDiceImg} 
+                          />
+                      </div>
                     </div>
                   )}                  
                 </div>
@@ -1971,7 +2015,19 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                                     {gameData?.players[playerKey]?.lastGuess > 0 ? 
                                       <>
                                       <div className={styles.areThereHead}>
-                                        <p><span>{translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[0]}x</span></p><div className={styles.diceTemplateHead}>{translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[1]} </div> <p> </p>
+                                        <p>
+                                          <span>{translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[0]}
+                                            x
+                                          </span>
+                                        </p>
+                                        <div className={styles.diceTemplateHead}>
+                                          {/* {translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[1]} */}
+                                          <img 
+                                            src={imageMap[translateNumberToSymbol(gameData?.players[playerKey]?.lastGuess).split(' ')[1]]}
+                                            className={styles.lastGuessCubileteHead} 
+                                          />
+                                        </div> 
+                                        <p> </p>
                                       </div>
                                       </> :
                                       <>
@@ -2049,7 +2105,13 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
                         {Array.isArray(gameData?.players[user.uid]?.rollResults) ? (
                           gameData.players[user.uid].rollResults.map((result, index) => (
                             <div className={styles.square} key={index}>
-                              <b>{result}</b>
+                              {/* <b>{result}</b> */}
+                              
+                                <img 
+                                  src={imageMap[result]}
+                                  alt={result} 
+                                  className={styles.diceImage} // opcional para tamaño/estilo 
+                                />
                             </div>
                           ))
                         ) : (
@@ -2106,21 +2168,55 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
                         ) : (
                           isPlayerTurn() && !Object.keys(playersChallenges).length ? (
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <div className={styles.controls}>
                               <div className={styles.controlsSymbols}>
                                 <div className={styles.symbolContainer}>
                                   {SYMBOLS.map(symbol => (
-                                    <button key={symbol} onClick={() => handleGuessChange(symbol)}>
-                                      {symbol}
+                                    <button className={`${styles.btnSymbol} ${styles.btnRaisedSymbol} ${styles.btnRaised1Symbol}`} key={symbol} onClick={() => handleGuessChange(symbol)}>
+                                      {/* {symbol} */}
+
+                                        <img 
+                                          src={imageMap[symbol]}
+                                          className={styles.symbolsInButtons} // opcional para tamaño/estilo 
+                                        />
                                     </button>
                                   ))}                        
                                 </div>
 
                               </div>
                               <div className={styles.moreLessButtons}>
-                                <button className={styles.moreButton} onClick={() => handleQuantityChange(1)}>+</button>                       
+                                <button className={`${styles.moreButton} ${styles.btnMoreLess} ${styles.btnRaisedMoreLess} ${styles.btnRaised1MoreLess}`} onClick={() => handleQuantityChange(1)}>+</button>                       
                                 <span>{playerGuessQuantity}x</span>
-                                <button className={styles.lessButton} onClick={() => handleQuantityChange(-1)}>-</button>
+                                <button className={`${styles.lessButton} ${styles.btnMoreLess} ${styles.btnRaisedMoreLess} ${styles.btnRaised1MoreLess}`} onClick={() => handleQuantityChange(-1)}>-</button>
                               </div>
 
 
@@ -2132,7 +2228,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
 
 
                               <div className={styles.controlsSendButton}>
-                                <button onClick={handleGuessSubmit}>
+                                <button className={` ${styles.btnSend} ${styles.btnRaisedSend} ${styles.btnRaised1Send}`} onClick={handleGuessSubmit}>
                                   {translations[language].send} {symbolChangeStatus == true || quantityStatus == true ? 
                                   `${playerGuessQuantity} ${playerGuess}` 
                                   :  translateNumberToSymbol(roundGuessTotalNew)}
@@ -2162,7 +2258,7 @@ leftSidePlayers = leftSidePlayers.filter(player => !rightSidePlayers.includes(pl
             {playerCount == gameData?.maxPlayers && !hasRolled && (
               <div className={styles.diceRoll}>
                 <div className={styles.diceRollFirst}>
-                  <button disabled={rollDiceStatus === true} onClick={handleRollDice}>{translations[language].roll}</button>
+                  <button className={`${styles.btnFirstRoll} ${styles.btnRaisedFirstRoll} ${styles.btnRaised1FirstRoll}`} disabled={rollDiceStatus === true} onClick={handleRollDice}>{translations[language].roll}</button>
                 </div>
               </div>
               )}

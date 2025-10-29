@@ -24,7 +24,7 @@
 .gameContainer{
     display:flex;
     flex-direction: column;
-    background-color: rgb(46, 46, 46);
+    background-color: rgb(69, 69, 69);
     height: 100%;
     width: 100vw;
 }
@@ -38,15 +38,28 @@
     width: 100%;
     align-items:center;
     position: relative;
+    /* background-color: #00c853; */
 }
 
 .controlsContainer{
-  border-top: 1px solid #fff;
+  border-top: 2px solid #29221f;
     display:flex;
     align-items: center;   
     height: 20%;
     width: 100%;
-    background-color: black;
+    /* background-color: #192820; */
+
+    /* background-color: #06321a;  */
+/* background: #041712;
+background: linear-gradient(180deg, rgba(4, 23, 18, 1) 0%, rgba(11, 51, 42, 1) 50%, rgba(9, 79, 69, 1) 100%); */
+
+/* background: #092e23;
+background: linear-gradient(180deg, rgba(9, 46, 35, 1) 0%, rgba(11, 51, 42, 1) 50%, rgba(9, 79, 69, 1) 100%); */
+
+
+background: #0b3629;
+background: linear-gradient(180deg, rgba(11, 54, 41, 1) 0%, rgba(11, 61, 52, 1) 50%, rgba(9, 79, 69, 1) 100%);
+
 }
 
 .diceRoll{
@@ -67,15 +80,51 @@
 .diceRoll button{
     font-size:min(4vw, 4em);
     color:#fff;
-    border-radius:min(1vw, 1em);
-    border: 1px solid #fff;
+    border-radius:20px;
     width:50%;
     margin-left: auto;
     margin-right: auto;
     padding-top:min(2vw, 2em);
     padding-bottom:min(2vw, 2em);
-    background-color:black;
+
 }
+
+
+/* ----------------- */
+
+
+.btnFirstRoll {
+
+
+
+  text-decoration: none;
+  cursor: pointer;
+  color: #fff;
+  border-radius: min(1.8vw, 1.8em); 
+  border:0px solid #fff;
+  /* padding:min(1.8vw, 1.8em); */
+}
+
+.btnRaisedFirstRoll {
+  padding: 5px;
+  background-color: #2C8C99;
+
+  box-shadow: 0 6px #28464B;
+  display: inline-block;
+}
+
+.btnRaised1FirstRoll {
+  position: relative;
+}
+
+.btnRaised1FirstRoll:active  {
+  transform: translateY(2px);
+  box-shadow: 0 4px #28464B;
+}
+/* ------------------------- */
+
+
+
 
 .gameControls{
     overflow-x: hidden;
@@ -119,10 +168,63 @@ justify-items: center; */
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
     grid-column-gap: 0px;
-    grid-row-gap: 1px;
+    grid-row-gap: 2px;
     align-items: center;
     justify-items: center;
+
+
 }
+
+.symbolContainer button{
+    overflow: hidden;
+}
+
+
+
+
+.symbolsInButtons{
+    object-fit: contain; 
+    width:100%;
+    height:100%;
+}
+
+
+/* ----------------- */
+
+
+/* .btnSymbol {
+  text-decoration: none;
+  cursor: pointer;
+  color: #222;
+  border-radius: min(1.8vw, 1.8em); 
+  border:0px solid #fff;
+
+}
+
+.btnRaisedSymbol {
+  background-color: #e6e6e6;
+  box-shadow: 0 6px #aaaaaa;
+  display: inline-block;
+}
+
+.btnRaised1Symbol  {
+  position: relative;
+  touch-action: manipulation;
+}
+
+.btnRaised1Symbol:active {
+  transform: translateY(2px);
+  box-shadow: 0 4px #aaaaaa;
+  transition: transform 0.05s ease, box-shadow 0.1s ease;
+} */
+
+/* ------------------------- */
+
+
+
+
+
+
 
 .reRollDice{
   color:#fff;
@@ -145,7 +247,7 @@ justify-items: center; */
   padding-right:min(12vw, 12em);
   border:1px solid #fff;
   color:#fff;
-  background-color:black;
+  /* background-color:black; */
   border-radius:min(2vw, 2em);
 }
 
@@ -192,6 +294,8 @@ justify-items: center; */
 
 }
 
+
+/* in the table ----------- */
 .buttonChallengeThere button{
   font-size:min(4vw, 4em);
   color:#fff;
@@ -283,24 +387,24 @@ justify-items: center; */
 }
 
 .gameControls button{
-    border: 1px solid #fff ; 
+    /* border: 1px solid #fff ;  */
     /* margin:0.1em;
     margin-top: 1em;
     font-size:1.2em;
     padding: 0.5em; */
-    color:#fff;
-    background:rgba(0, 0, 0, 0.688);
+    /* color:#fff; */
+    /* background:rgba(0, 0, 0, 0.688); */
     /* border-radius: 0.5em; */
     /* border: none;  */
 }
 .gameControls button:hover{
-  border: 1px solid #fff ; 
+  /* border: 1px solid #fff ;  */
   /* margin:0.1em;
   margin-top: 1em;
   font-size:1.2em;
   padding: 0.5em; */
-  color:#fff;
-  background:rgba(0, 0, 0, 0.688);
+  /* color:#fff;
+  background:rgba(0, 0, 0, 0.688); */
   /* border-radius: 0.5em; */
   /* border: none;  */
 }
@@ -353,6 +457,10 @@ justify-items: center; */
 
 
 .moreLessButtons button{
+
+}
+
+.moreButton{
     display:flex;
     align-items:center;
     justify-content:center;
@@ -360,13 +468,62 @@ justify-items: center; */
     width:  min(8vw, 8em);
     height:  min(8vw, 8em);
     font-size:min(7vw, 7em);
-    border: none; 
-    border: 1px solid #fff ; 
+    border-radius:5px;
+touch-action: manipulation;
+    /* border: 15px solid #e1e1e1 ;  */
+}
+
+.lessButton{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    width:  min(8vw, 8em);
+    height:  min(8vw, 8em);
+    font-size:min(7vw, 7em);
+    border-radius:5px;
+touch-action: manipulation;
+    /* border: 1px solid #e1e1e1 ;  */
 }
 
 
+/* ----------------- */
+
+
+.btnMoreLess {
+  text-decoration: none;
+  cursor: pointer;
+  color: #222;
+  border-radius: min(1.8vw, 1.8em); 
+  border:0px solid #fff;
+  /* padding:min(1.8vw, 1.8em); */
+}
+
+.btnRaisedMoreLess{
+  /* padding: 5px; */
+  background-color: #e6e6e6;
+
+  box-shadow: 0 6px #c7c7c7;
+  display: inline-block;
+}
+
+.btnRaised1MoreLess {
+  position: relative;
+  touch-action: manipulation;
+}
+
+.btnRaised1MoreLess:active:hover  {
+  transform: translateY(2px);
+  box-shadow: 0 4px #c7c7c7;
+  transition: transform 0.05s ease, box-shadow 0.1s ease;
+}
+/* ------------------------- */
+
+
+
+
 .controlsSendButton{
-    /* background-color: aqua; */
+    /* background-color: #005C1F; */
     width:fit-content;
     display:flex;
     flex-direction:column;
@@ -377,13 +534,47 @@ justify-items: center; */
 
 
 .controlsSendButton button{
-    /* background-color: aqua; */
+
+  /* background-color: #3d3d3d; */
     width: min(20vw, 20em);
     height: min(20vw, 20em);
     border-radius:100%;
-    border: 1px solid #fff ; 
-
+    /* border: 1px solid #222 ;  */
+    color:#fff;
+    font-weight:700;
+    font-size: min(3vw, 3em);
 }
+
+/* ----------------- */
+
+
+.btnSend {
+  text-decoration: none;
+  cursor: pointer;
+  color: #222;
+  border:1px solid #206E7A;
+  /* padding:min(1.8vw, 1.8em); */
+}
+
+.btnRaisedSend{
+  /* padding: 5px; */
+  background-color: #2C8C99;
+
+  box-shadow: 0 6px #28464B;
+  display: inline-block;
+}
+
+.btnRaised1Send {
+  position: relative;
+  touch-action: manipulation;
+}
+
+.btnRaised1Send:active{
+  transform: translateY(2px);
+  box-shadow: 0 4px #28464B;
+  transition: transform 0.02s ease, box-shadow 0.02s ease;
+}
+/* ------------------------- */
 
 
 
@@ -400,10 +591,10 @@ justify-items: center; */
   width: 70%;
   flex-direction: column;
   background-color: aqua;
-  background-color: black;
+  background-color: #513127;
   margin-bottom:min(2vw, 2em);
 
-  border:1px solid #fff;
+  border:3px solid #32211b;
   padding: min(1.4vw, 1.4em);
 
   border-bottom-left-radius: min(45vw, 45em);
@@ -418,8 +609,13 @@ justify-items: center; */
   width: 100%;
   height: 100%;
   background-color: #b30d0d48;
-  background-color: black;
-  border:1px solid #fff;
+  /* background-color: black; */
+  border:2px solid #684a3f;
+
+  background-image: url('./../../../public/images/Gemini_Generated_Image_k8a8o3k8a8o3k8a8.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size:cover;
 
   border-top-left-radius: min(100vw, 100em);
   border-top-right-radius: min(100vw, 100em);
@@ -510,7 +706,17 @@ justify-items: center; */
   border: 1px solid black;    
   color:black;
   transform: rotate(180deg); 
+  overflow: hidden;
+  margin:1px;
 }
+
+.diceImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; 
+  transform: rotate(180deg); 
+}
+
 
 
 
@@ -553,6 +759,7 @@ justify-items: center; */
   width: min(2vw, 2em);
   height: min(2vw, 2em);
   margin: 2px;
+  border-radius: 2px;
   background-color: white;
 }
 .diceTransparent {
@@ -610,9 +817,9 @@ justify-items: center; */
 
   width: 30%;
   height: 60%;
-  background-color: black;
+  /* background-color: rgb(60, 185, 2); */
   border-radius: min(20vw, 20em);
-  border: 1px solid #fff;
+  border: 1px solid #ffffff65;
 
 }
 
@@ -628,6 +835,7 @@ justify-items: center; */
   /* margin-bottom:min(-8vw, -8em); */
   top:min(1vw, 1em);
   top:18%;
+  /* background-color: #0070f3; */
 }
 
 .tableCenterActual p{
@@ -666,16 +874,30 @@ justify-items: center; */
   display:flex;
   justify-content:center;
   align-items:center;
-  padding:min(0.4vw, 0.4em);
+  /* padding:min(0.4vw, 0.4em); */
   background-color:#fff;
   color:black;
-  text-align:center;
+  /* text-align:center; */
   border-radius:min(1.2vw, 1.2em);
-  border: 1px solid black;
-  height:min(4vw, 4em);
-  width:min(4vw, 4em);
+  /* border: 1px solid black; */
+  height:min(4.5vw, 4.5em);
+  width:min(4.5vw, 4.5em);
   margin-left:min(1vw, 1em);
+
+  overflow: hidden;
 }
+
+
+
+.lastGuessDiceImg{
+    object-fit: contain; 
+    width:100%;
+    height:100%;
+}
+
+
+
+
 
 .devilDiceInfoContainer{
   text-align:center;
@@ -838,11 +1060,11 @@ justify-items: center; */
   justify-content:center;
   align-items:center;
   z-index:2;
-  border: 1px solid #fff;
+  border: 1px solid #222222;
   border-radius: min(40vw, 40em);
   width: min(10vw, 10em);
   height: min(10vw, 10em);
-  /* background-color:red; */
+  background-color:#1c1c1c;
 }
 
 .areThereHead{
@@ -877,10 +1099,16 @@ justify-items: center; */
   width:min(3vw, 3em);
   margin-left:min(0.5vw, 0.5em);
   margin-right:min(0.5vw, 0.5em);
+
+  overflow: hidden;
 }
 
 
-
+.lastGuessCubileteHead{
+    object-fit: contain; 
+    width:100%;
+    height:100%;
+}
 
 
 
@@ -889,10 +1117,10 @@ justify-items: center; */
   position:absolute;
   width: min(10vw, 10em);
   height: 100%;
-  border: 1px solid #fff;
+  border: 1px solid #000000;
   border-radius: min(40vw, 40em);
   margin-bottom: min(0.6vw, 0.6em);
-  /* background-color:red; */
+  background-color: #0b0b0b; 
 }
 
 
@@ -974,6 +1202,8 @@ justify-items: center; */
 .popUpContent{
   display:flex;
   flex-direction:column;
+  justify-content: center;
+  align-items: center;
 
   position:relative;
   background-color:#fff;
@@ -991,11 +1221,23 @@ justify-items: center; */
   top: 0;
   right: 0;
   margin: 10px;
+  text-decoration:none;
+  background-color: #b42c2c;
+  border-radius: min(1vw, 1em);
+  border: 0px solid #fff;
+  color:#fff;
+  padding-top:min(2vw, 2em);
+  padding-bottom:min(2vw, 2em);
+  padding-left:min(3vw, 3em);
+  padding-right:min(3vw, 3em);
 }
 
 .menuPopUpClosed{
   display:none;
 }
+
+
+
 
 
 .roundCountContainer{
@@ -1042,12 +1284,16 @@ justify-items: center; */
   padding:  min(1.6vw, 1.6em);
   margin-top:  min(0.7vw, 0.7em);
   background-color: #fff;
-  color: black;
+
+background: #ffffff;
+background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(235, 235, 235, 1) 50%, rgba(212, 212, 212, 1) 100%);
+
+color: black;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s;
-  border:1px solid black;
+  border:1px solid rgb(79, 79, 79);
 }
 
 .copyButton:hover {
@@ -1135,13 +1381,64 @@ justify-items: center; */
 .menuContainer button{
   font-size: min(4vw, 4em);
   color: #fff;
-  border: 1px solid #fff;
-  padding:min(1.5vw, 1.5em);
+  /* border: 1px solid #fff; */
+  /* padding:min(1.5vw, 1.5em);
   padding-right:min(4vw, 4em);
-  padding-left:min(4vw, 4em);
-  background-color:black;
-  border-radius: min(1.2vw, 1.2em);
+  margin-bottom: 2em;
+  padding-left:min(4vw, 4em); */
+  /* background-color:black;
+  border-radius: min(1.2vw, 1.2em); */
+  border: 0px solid #fff;
+
+  font-family: "League Spartan", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
 }
+
+/* ----------------- */
+
+
+.btn {
+  /* font-family: 'Lato', sans-serif; */
+  /* font-size: 22px;
+  letter-spacing: 2px; */
+  text-decoration: none;
+  /* text-transform: uppercase; */
+  cursor: pointer;
+  color: #fff;
+  border-radius: min(1.8vw, 1.8em); 
+  padding:min(1.8vw, 1.8em);
+}
+
+.btnRaised {
+  padding: 5px;
+  background-color: #2C8C99;
+  /* border-radius: 0 0 4px 4px; */
+  box-shadow: 0 6px #28464B;
+  display: inline-block;
+}
+
+.btnRaised1 {
+  position: relative;
+  /* transition: all 0.2s ease-in; */
+}
+
+.btnRaised1:active  {
+  transform: translateY(2px);
+  box-shadow: 0 4px #28464B;
+}
+
+
+
+
+/* --------------------- */
+
+
+
+
+
+
 
 .challengeButtonContainer{
   position: absolute;
@@ -1155,9 +1452,11 @@ justify-items: center; */
   width: min(17vw, 17em);
   height: min(17vw, 17em);
   color: #fff;
-  border: 1px solid #fff;
-  padding:min(0.5vw, 0.5em);
+  border: 1px solid #8a8a8a;
+  font-size:min(2.8vw, 2.8em);
+  padding:min(0.1vw, 0.1em);
   background-color:rgb(97, 9, 9);
+    /* background-color:#00c853; */
   border-radius: min(30vw, 30em);
 }
 
